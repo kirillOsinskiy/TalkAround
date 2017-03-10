@@ -12,12 +12,14 @@ import java.util.TreeSet;
 @XmlRootElement
 public class Talk implements Serializable, Comparable {
 
+    private static final long serialVersionUID = -4352668216917275618L;
+
     protected BigInteger id;
     protected Date creationDate;
     protected String title;
     protected String text;
     protected CustomLocation location;
-    protected transient Float distance;
+    protected Float distance;
     private TreeSet<Answer> answerList = new TreeSet<Answer>();
 
     public BigInteger getId() {

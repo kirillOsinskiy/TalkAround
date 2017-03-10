@@ -94,23 +94,23 @@ public class DataAccessService {
     }
 
     public InputStream getAvailableTalks(Double longitude, Double latitude, Float distance) throws IOException {
-        ArrayList<Talk> resultList = null;
-        try {
-            resultList = getTalksForLocation(longitude, latitude, distance);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-//        CustomLocation location = new CustomLocation(longitude, latitude);
-//        for (Talk talk : talkList) {
-//            Float distanceBetween = CustomLocationUtils.distanceTo(location, talk.getLocation());
-//            System.out.println("Distance between user and talk " + talk.getTitle() + " is " + distanceBetween);
-//            if(distanceBetween <= distance) {
-//                talk.setDistance(distanceBetween);
-//                resultList.add(talk);
-//            }
+        ArrayList<Talk> resultList = new ArrayList<Talk>();
+//        try {
+//            resultList = getTalksForLocation(longitude, latitude, distance);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
 //        }
+        CustomLocation location = new CustomLocation(longitude, latitude);
+        for (Talk talk : talkList) {
+            Float distanceBetween = CustomLocationUtils.distanceTo(location, talk.getLocation());
+            System.out.println("Distance between user and talk " + talk.getTitle() + " is " + distanceBetween);
+            if(distanceBetween <= distance) {
+                talk.setDistance(distanceBetween);
+                resultList.add(talk);
+            }
+        }
         return getInputStreamFromObject(resultList);
     }
 
@@ -118,9 +118,12 @@ public class DataAccessService {
         Connection conn = openNewConnection();
         Statement statement = null;
         statement = conn.createStatement();
-        ResultSet result = statement.executeQuery(
-                String.format("SELECT talk.*, (point("+longitude+","+latitude+") <@> point(talk.longitude, talk.latitude)) as distance FROM %s talk " +
-                        "WHERE distance<"+distance, TALK_TABLE_NAME));
+//        String query = String.format("SELECT talk.*, " +
+//                "(point("+longitude+","+latitude+") <@> point(talk.longitude, talk.latitude)) as distance FROM %s talk " +
+//                "WHERE distance<" + distance, TALK_TABLE_NAME);
+        String query = String.format("SELECT talk.* FROM %s talk",TALK_TABLE_NAME);
+        System.out.println(query);
+        ResultSet result = statement.executeQuery(query);
         ArrayList<Talk> talks = new ArrayList<Talk>();
         while (result.next()) {
             talks.add(createTalk(BigInteger.valueOf(result.getInt(TALK_ID)), result.getDate(TALK_CREATIONDATE),
