@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Talk Around</string>
+
+    <string name="firstName">First Name</string>
+    <string name="lastName">Last name</string>
+    <string name="email">Email</string>
+    <string name="retrieve">Retrieve</string>
+    <string name="post">Post</string>
+    <string name="clear">Clear</string>
+    <string name="submit">Send</string>
+    <string name="cancel">Cancel</string>
+    <string name="addTalk">Add new talk</string>
+    <string name="distanceText">(Distance: 15.3m)</string>
+    <string name="answerOrderNumberText">12</string>
+    <string name="crateNewTalk">Create new talk</string>
+    <string name="talkTitle">Title</string>
+    <string name="answerTitleText">12:45 23.05.2016</string>
+    <string name="talkTitleText">Mobile development</string>
+    <string name="talkMessageText">The API is device-agnostic; it does not care how the browser determines location</string>
+    <string name="talkText">Message</string>
+    <string name="title_activity_display_talk">DisplayTalkActivity</string>
+    <string name="sendAnswer">Send</string>
+    <string name="geoLocationZone">Geolocation zone</string>
+    <string name="talksFound">Found 0 talk(s)</string>
+</resources>

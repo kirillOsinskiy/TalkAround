@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#E8EEF2">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:src="@drawable/messages_head"
+        android:scaleType="fitStart"/>
+    <TextView
+        android:id="@+id/talk_title"
+        android:text="@string/talkTitleText"
+        android:textSize="20sp"
+        android:paddingTop="10dp"
+        android:paddingLeft="10dp"
+        android:paddingBottom="10dp"
+        android:textColor="#083661"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <ListView
+        android:id="@+id/answer_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:layout_weight="1"
+        android:background="#E8EEF2"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="5dp">
+    </ListView>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/answer_text"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:textColor="#083661"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="5dp"
+            android:layout_gravity="bottom"
+            android:text="@string/sendAnswer"
+            android:background="#92278F"
+            android:textColor="#FFFFFF"
+            android:onClick="addNewAnswer"/>
+    </LinearLayout>
+</LinearLayout>

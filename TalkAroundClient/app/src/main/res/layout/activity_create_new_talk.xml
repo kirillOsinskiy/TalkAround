@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tableLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#E8EEF2">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:src="@drawable/new_talk_head"
+        android:scaleType="fitStart"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/talkTitle"
+            android:textColor="#939598"
+            android:textSize="25sp">
+        </TextView>
+
+        <EditText
+            android:id="@+id/talk_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords"
+            android:textSize="18sp"
+            android:textColor="#083661"/>
+    </LinearLayout>
+
+    <TextView
+        style=""
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/talkText"
+        android:textColor="#939598"
+        android:textSize="25sp">
+    </TextView>
+
+    <EditText
+        android:id="@+id/talk_text"
+        android:inputType="textMultiLine"
+        android:lines="15"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:scrollbars="vertical"
+        android:textSize="18sp"
+        android:gravity="top|left"
+        android:textColor="#083661"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginBottom="5dp">
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="cancelTalk"
+            android:text="@string/cancel"
+            android:layout_marginRight="30dp"
+            android:background="@drawable/layout_btn"
+            android:textColor="#083661"/>
+
+        <Button
+            android:id="@+id/send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="createNewTalk"
+            android:text="@string/submit"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/layout_btn2"
+            android:textColor="#FFFFFF"/>
+    </LinearLayout>
+</LinearLayout>
