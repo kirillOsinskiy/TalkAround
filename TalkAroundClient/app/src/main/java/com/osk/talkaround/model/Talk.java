@@ -10,6 +10,8 @@ import java.util.TreeSet;
  */
 public class Talk implements Serializable, Comparable {
 
+    private static final long serialVersionUID = -4352668216917275618L;
+
     protected BigInteger id;
     protected Date creationDate;
     protected String title;
