@@ -1,6 +1,7 @@
 package com.osk.talkaround.client.activities;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -53,6 +54,21 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = ((TabLayout) findViewById(R.id.tabs));
         ViewPager viewPager = ((ViewPager) findViewById(R.id.viewpager));
         String[] titles = getResources().getStringArray(R.array.tab_titles);
+
+/*
+
+        float[] hsv = new float[3];
+        int color = 0;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            color = getColor(R.color.colorPrimary);
+        }
+        Color.colorToHSV(color, hsv);
+        hsv[2] *= 0.8f; // value component
+        color = Color.HSVToColor(hsv);
+
+*/
+
+
        // tvTalksCount = (TextView) findViewById(R.id.talksCount);
         adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
@@ -82,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(viewPager);
         setLocationSmall(null);
     }
+
+
 
 
     @Override

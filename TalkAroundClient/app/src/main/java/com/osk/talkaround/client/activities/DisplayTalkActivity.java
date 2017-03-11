@@ -3,6 +3,8 @@ package com.osk.talkaround.client.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -20,16 +22,26 @@ import org.json.JSONException;
 
 import java.util.Iterator;
 
-public class DisplayTalkActivity extends Activity {
+public class DisplayTalkActivity extends AppCompatActivity {
 
-    ListView answersListView;
-    String talkId;
+    private ListView answersListView;
+    private String talkId;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_talk);
-
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //getSupportActionBar().setDisplayShowTitleEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         answersListView = (ListView) findViewById(R.id.answer_list);
 
         Intent intent = getIntent();

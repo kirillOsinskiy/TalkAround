@@ -37,4 +37,5 @@
     <string name="m1000">1000 m</string>
     <string name="add">Add message</string>
     <string name="error">Ошибка подключения к серверу</string>
+    <string name="messages">Messages</string>
 </resources>
