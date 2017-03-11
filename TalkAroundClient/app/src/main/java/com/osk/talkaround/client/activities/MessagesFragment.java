@@ -5,16 +5,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.osk.talkaroundclient.R;
-import com.osk.talkaround.client.adapters.TalkListArrayAdapter;
+import com.osk.talkaround.client.adapters.MessagesAdapter;
 import com.osk.talkaround.model.Talk;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static com.osk.talkaround.client.activities.MainActivity.TALK_ID_PARAM;
 
@@ -25,7 +30,8 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private SwipeRefreshLayout swipeLayout;
-    private ListView talksListView;
+    private RecyclerView recyclerView;
+    private MessagesAdapter adapter;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -73,27 +79,39 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        talksListView = (ListView) view.findViewById(R.id.talkList);
-        // ListView Item Click Listener
+
         swipeLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
         swipeLayout.setOnRefreshListener(this);
 
-        talksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        setupRecyclerView(view);
 
+        isViewCreated = true;
+        if (talks != null)
+            updateTalks(talks);
+    }
+
+    private void setupRecyclerView(View view) {
+        recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        adapter = new MessagesAdapter(new ArrayList<Talk>());
+
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getContext(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-                Intent intent = new Intent(view.getContext(), DisplayTalkActivity.class);
-                Talk itemValue = (Talk) talksListView.getItemAtPosition(position);
+            public void onItemClick(View view, int position) {
+                Intent intent = new Intent(getContext(), DisplayTalkActivity.class);
+                Talk itemValue = adapter.getTalksList().get(position);
                 intent.putExtra(TALK_ID_PARAM, String.valueOf(itemValue.getId()));
                 startActivity(intent);
             }
 
-        });
-        isViewCreated = true;
-        if (talks != null)
-            updateTalks(talks);
+            @Override
+            public void onLongItemClick(View view, int position) {
+                // do whatever
+            }
+        }));
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -108,8 +126,8 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
     }
 
     public void fillTalksList(Talk[] talks) {
-        TalkListArrayAdapter adapter = new TalkListArrayAdapter(getContext(), talks);
-        talksListView.setAdapter(adapter);
+        adapter.setTalksList(Arrays.asList(talks));
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -167,4 +185,5 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }*/
+
 }

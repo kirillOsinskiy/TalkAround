@@ -1,69 +1,29 @@
 <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/swipe_container"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:clickable="false"
+    android:focusable="false">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
         android:orientation="vertical">
 
-
-       <!-- <LinearLayout
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#E8EEF2"
-            android:orientation="horizontal"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp">
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="5dp"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="5dp"
-                android:layout_marginTop="0dp"
-                android:layout_weight="1"
-                android:adjustViewBounds="true"
-                android:background="#E8EEF2"
-                android:onClick="retrieveSampleData"
-                android:padding="20dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/refresh"
-                android:text="@string/retrieve" />
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="18dp"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="5dp"
-                android:layout_marginTop="0dp"
-                android:layout_weight="1"
-                android:adjustViewBounds="true"
-                android:background="#E8EEF2"
-                android:onClick="startNewTalk"
-                android:padding="5dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/add_new_talk_btn"
-                android:text="@string/addTalk" />
-        </LinearLayout>
--->
-        <ListView
-            android:id="@+id/talkList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="16dp"
+            android:layout_height="0dp"
             android:layout_weight="1"
             android:background="#E8EEF2"
-            android:divider="@android:color/transparent"
-            android:dividerHeight="5dp"
-            android:paddingBottom="10dp"
+            android:clickable="false"
+            android:focusable="false"
             android:paddingLeft="16dp"
-            android:paddingRight="16dp" />
+            android:paddingRight="16dp"
+            android:paddingTop="8dp" />
+
     </LinearLayout>
 </android.support.v4.widget.SwipeRefreshLayout>
 
