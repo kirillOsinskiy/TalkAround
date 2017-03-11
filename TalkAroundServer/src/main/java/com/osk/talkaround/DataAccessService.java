@@ -86,6 +86,7 @@ public class DataAccessService {
     static final String PASS = "talkaround";
 
     private static volatile DataAccessService instance;
+    private static Connection connection;
 
     public static DataAccessService getInstance() {
         DataAccessService localInstance = instance;
@@ -98,6 +99,13 @@ public class DataAccessService {
             }
         }
         return localInstance;
+    }
+
+    private Connection getConnection() throws SQLException {
+        if(connection==null || connection.isClosed()) {
+            connection = openNewConnection();
+        }
+        return connection;
     }
 
     private DataAccessService() {
@@ -149,19 +157,17 @@ public class DataAccessService {
     }
 
     private ArrayList<Talk> getTalksForLocation(Double longitude, Double latitude, Float distance) throws SQLException {
-        try (Connection connection = openNewConnection()) {
-            PreparedStatement statement = connection.prepareStatement(SELECT_AVAILABLE_TALKS);
-            statement.setDouble(1, longitude);
-            statement.setDouble(2, latitude);
-            statement.setFloat(3, distance);
-            System.out.println(statement.toString());
-            ResultSet result = statement.executeQuery();
-            ArrayList<Talk> talks = new ArrayList<>();
-            while (result.next()) {
-                talks.add(createTalkFromResultSet(result));
-            }
-            return talks;
+        PreparedStatement statement = getConnection().prepareStatement(SELECT_AVAILABLE_TALKS);
+        statement.setDouble(1, longitude);
+        statement.setDouble(2, latitude);
+        statement.setFloat(3, distance);
+        System.out.println(statement.toString());
+        ResultSet result = statement.executeQuery();
+        ArrayList<Talk> talks = new ArrayList<>();
+        while (result.next()) {
+            talks.add(createTalkFromResultSet(result));
         }
+        return talks;
     }
 
     public InputStream getTalkByIdInputStream(String talkId) throws IOException, SQLException {
@@ -187,51 +193,45 @@ public class DataAccessService {
     }
 
     private boolean storeTalkInDB(Talk res) throws SQLException {
-        try (Connection connection = openNewConnection()) {
-            PreparedStatement statement = connection.prepareStatement(INSERT_NEW_TALK_SQL);
-            statement.setTimestamp(1, new Timestamp(res.getCreationDate().getTime()));
-            statement.setString(2, res.getTitle());
-            statement.setString(3, res.getText());
-            statement.setDouble(4, res.getLocation().getLongitude());
-            statement.setDouble(5, res.getLocation().getLatitude());
-            System.out.println(statement.toString());
-            return statement.execute();
-        }
+        PreparedStatement statement = getConnection().prepareStatement(INSERT_NEW_TALK_SQL);
+        statement.setTimestamp(1, new Timestamp(res.getCreationDate().getTime()));
+        statement.setString(2, res.getTitle());
+        statement.setString(3, res.getText());
+        statement.setDouble(4, res.getLocation().getLongitude());
+        statement.setDouble(5, res.getLocation().getLatitude());
+        System.out.println(statement.toString());
+        return statement.execute();
     }
 
     private Talk getTalkById(String talkId) throws SQLException {
-        try (Connection connection = openNewConnection()) {
-            PreparedStatement statement = connection.prepareStatement(SELECT_TALK_BY_ID);
-            statement.setInt(1, Integer.valueOf(talkId));
-            System.out.println(statement.toString());
-            ResultSet result = statement.executeQuery();
-            while (result.next()) {
-                Talk res = createTalkFromResultSet(result);
-                res.setAnswerList(getAnswersForTalk(talkId));
-                return res;
-            }
-            throw new RuntimeException("Talk with id = " + talkId + " not found.");
+        PreparedStatement statement = getConnection().prepareStatement(SELECT_TALK_BY_ID);
+        statement.setInt(1, Integer.valueOf(talkId));
+        System.out.println(statement.toString());
+        ResultSet result = statement.executeQuery();
+        while (result.next()) {
+            Talk res = createTalkFromResultSet(result);
+            res.setAnswerList(getAnswersForTalk(talkId));
+            return res;
         }
+        throw new RuntimeException("Talk with id = " + talkId + " not found.");
     }
 
     private TreeSet<Answer> getAnswersForTalk(String talkId) throws SQLException {
-        try (Connection connection = openNewConnection()) {
-            PreparedStatement statement = connection.prepareStatement(SELECT_ANSWERS_BY_TALK_ID);
-            statement.setInt(1, Integer.valueOf(talkId));
-            System.out.println(statement.toString());
-            ResultSet result = statement.executeQuery();
-            TreeSet<Answer> answers = new TreeSet<>();
-            while (result.next()) {
-                Answer answer = createAnswer(result.getLong(DB_ANSWER_ID),
-                        result.getLong(DB_ANSWER_ORDER_NUM),
-                        result.getLong(DB_ANSWER_TALK_ID),
-                        result.getDate(DB_ANSWER_DATE),
-                        result.getString(DB_ANSWER_MSG),
-                        result.getString(DB_ANSWER_ATTACHMENT));
-                answers.add(answer);
-            }
-            return answers;
+        PreparedStatement statement = getConnection().prepareStatement(SELECT_ANSWERS_BY_TALK_ID);
+        statement.setInt(1, Integer.valueOf(talkId));
+        System.out.println(statement.toString());
+        ResultSet result = statement.executeQuery();
+        TreeSet<Answer> answers = new TreeSet<>();
+        while (result.next()) {
+            Answer answer = createAnswer(result.getLong(DB_ANSWER_ID),
+                    result.getLong(DB_ANSWER_ORDER_NUM),
+                    result.getLong(DB_ANSWER_TALK_ID),
+                    result.getDate(DB_ANSWER_DATE),
+                    result.getString(DB_ANSWER_MSG),
+                    result.getString(DB_ANSWER_ATTACHMENT));
+            answers.add(answer);
         }
+        return answers;
     }
 
     private Answer createAnswer(long answerId, long orderNumber, long talkId, Date answerDate, String msg,
@@ -242,7 +242,7 @@ public class DataAccessService {
         answer.setTalkId(BigInteger.valueOf(talkId));
         answer.setAnswerDate(answerDate);
         answer.setMessage(msg);
-        answer.setAttachment(new File(attachment));
+        answer.setAttachment(attachment==null?null:new File(attachment));
         return answer;
     }
 
@@ -276,7 +276,7 @@ public class DataAccessService {
         answer.setAnswerDate(Calendar.getInstance().getTime());
         answer.setMessage(answerText);
         answer.setOrderNumber(getLastOrderNumber(talk));
-        answer.setAttachment(new File(attachment));
+        answer.setAttachment(attachment==null?null:new File(attachment));
 
         storeAnswerInDB(answer);
         talk.getAnswerList().add(answer);
@@ -284,15 +284,13 @@ public class DataAccessService {
     }
 
     private boolean storeAnswerInDB(Answer answer) throws SQLException, ClassNotFoundException {
-        try (Connection connection = openNewConnection()) {
-            PreparedStatement statement = connection.prepareStatement(INSERT_NEW_ANSWER_FOR_TALK_SQL);
-            statement.setLong(1, answer.getTalkId().longValue());
-            statement.setLong(2, answer.getOrderNumber());
-            statement.setTimestamp(3, new Timestamp(answer.getAnswerDate().getTime()));
-            statement.setString(4, answer.getMessage());
-            System.out.println(statement.toString());
-            return statement.execute();
-        }
+        PreparedStatement statement = getConnection().prepareStatement(INSERT_NEW_ANSWER_FOR_TALK_SQL);
+        statement.setLong(1, answer.getTalkId().longValue());
+        statement.setLong(2, answer.getOrderNumber());
+        statement.setTimestamp(3, new Timestamp(answer.getAnswerDate().getTime()));
+        statement.setString(4, answer.getMessage());
+        System.out.println(statement.toString());
+        return statement.execute();
     }
 
     private Talk createTalk(BigInteger id, Date creationDate, String title, String text, Double longitude,
