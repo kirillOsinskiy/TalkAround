@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by Kirill on 31.03.2016.
  */
 public class CustomLocation implements Serializable {
-
+    private static final long serialVersionUID = 207967188772438351L;
     private double longitude;
     private double latitude;
 

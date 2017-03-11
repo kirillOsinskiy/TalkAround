@@ -9,6 +9,7 @@ import java.io.Serializable;
 @XmlRootElement
 public class CustomLocation implements Serializable {
 
+    git
     private double longitude;
     private double latitude;
 

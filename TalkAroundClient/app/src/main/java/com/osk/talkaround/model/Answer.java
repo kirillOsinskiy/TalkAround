@@ -8,7 +8,7 @@ import java.util.Date;
  * Created by KOsinsky on 19.03.2016.
  */
 public class Answer implements Serializable, Comparable {
-
+    private static final long serialVersionUID = -30525038118543965L;
     private BigInteger id;
     private BigInteger talkId;
     private long orderNumber;
