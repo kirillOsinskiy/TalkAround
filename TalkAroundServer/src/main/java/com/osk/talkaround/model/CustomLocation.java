@@ -9,6 +9,7 @@ import java.io.Serializable;
 @XmlRootElement
 public class CustomLocation implements Serializable {
 
+    private static final long serialVersionUID = 207967188772438351L;
     private double longitude;
     private double latitude;
 
