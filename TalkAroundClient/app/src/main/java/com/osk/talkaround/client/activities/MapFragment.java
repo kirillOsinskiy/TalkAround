@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -17,7 +16,6 @@ import android.view.ViewGroup;
 import com.example.osk.talkaroundclient.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.dynamic.IObjectWrapper;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -26,7 +24,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -49,10 +46,10 @@ import static com.osk.talkaround.client.activities.MainActivity.TALK_ID_PARAM;
 public class MapFragment extends UpdatableFragment implements
         GoogleApiClient.OnConnectionFailedListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleMap.OnMarkerClickListener,
+        GoogleMap.OnInfoWindowClickListener,
         OnMapReadyCallback,
         LocationListener {
-    private static final int ZOOM = 13;
+    private static final int ZOOM = 14;
 
     MapView mMapView;
     private GoogleMap googleMap;
@@ -64,6 +61,7 @@ public class MapFragment extends UpdatableFragment implements
 
     private Talk[] talks;
     private int metres = 0;
+
     public MapFragment() {
     }
 
@@ -137,7 +135,7 @@ public class MapFragment extends UpdatableFragment implements
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         LocationRequest request = new LocationRequest();
         request.setInterval(2000);
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request, this);
@@ -237,36 +235,36 @@ public class MapFragment extends UpdatableFragment implements
 
         lastMarkers.clear();
 
-        for (final Talk talk : talks) {
+        for (Talk talk : talks) {
             CustomLocation l = talk.getLocation();
             MarkerOptions marker = new MarkerOptions().position(
                     new LatLng(l.getLatitude(), l.getLongitude())).title(talk.getTitle());
             lastMarkers.add(googleMap.addMarker(marker));
-            googleMap.setOnMarkerClickListener(this);
+            googleMap.setOnInfoWindowClickListener(this);
+
         } //TODO ICON
 
     }
 
+
+
     @Override
-    public boolean onMarkerClick(Marker marker) {
+    public void onInfoWindowClick(Marker marker) {
         String title = marker.getTitle();
         for (Talk talk : this.talks) {
             if (talk.getTitle().equals(title)) {
                 Intent intent = new Intent(getContext(), DisplayTalkActivity.class);
-                intent.putExtra(TALK_ID_PARAM, talk.getId());
+                intent.putExtra(TALK_ID_PARAM, String.valueOf(talk.getId()));
                 startActivity(intent);
             }
         }
-        return true;
     }
 
     @Override
     public void onDistChanged(int metres) {
-        if (mLastLocation == null || !isMapReady) {
-            this.metres = metres;
-            return;
-        }
-       updatePosition();
+        this.metres = metres;
+        if (mLastLocation == null || !isMapReady) return;
+        updatePosition();
     }
 
     private void updatePosition() {

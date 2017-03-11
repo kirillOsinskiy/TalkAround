@@ -9,7 +9,7 @@
         android:orientation="vertical">
 
 
-        <LinearLayout
+       <!-- <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#E8EEF2"
@@ -51,11 +51,12 @@
                 android:src="@drawable/add_new_talk_btn"
                 android:text="@string/addTalk" />
         </LinearLayout>
-
+-->
         <ListView
             android:id="@+id/talkList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="16dp"
             android:layout_weight="1"
             android:background="#E8EEF2"
             android:divider="@android:color/transparent"

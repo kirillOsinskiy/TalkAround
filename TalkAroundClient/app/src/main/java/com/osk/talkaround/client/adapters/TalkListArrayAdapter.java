@@ -1,6 +1,7 @@
 package com.osk.talkaround.client.adapters;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,14 +31,15 @@ public class TalkListArrayAdapter extends ArrayAdapter<Talk> {
         this.values = values;
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         ViewHolder holder;
         View rowView = convertView;
         if (rowView == null) {
             LayoutInflater inflater =
                     (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
-            rowView = inflater.inflate(R.layout.row_talk_layout, null, true);
+            rowView = inflater.inflate(R.layout.row_talk_layout, parent, false);
             holder = new ViewHolder();
             holder.titleTextView = (TextView) rowView.findViewById(R.id.talk_title);
             holder.messageTextView = (TextView) rowView.findViewById(R.id.talk_message);
