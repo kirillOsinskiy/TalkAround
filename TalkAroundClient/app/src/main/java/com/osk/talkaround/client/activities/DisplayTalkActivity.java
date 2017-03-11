@@ -9,7 +9,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.osk.talkaround.client.ArrayAdapters.AnswerListArrayAdapter;
+import com.osk.talkaround.client.adapters.AnswerListArrayAdapter;
 import com.example.osk.talkaroundclient.R;
 import com.osk.talkaround.model.Answer;
 import com.osk.talkaround.model.Talk;

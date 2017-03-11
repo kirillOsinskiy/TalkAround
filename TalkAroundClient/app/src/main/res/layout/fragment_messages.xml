@@ -1,0 +1,63 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.osk.talkaround.client.activities.MessagesFragment">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:background="#E8EEF2">
+
+        <ImageButton
+            android:src="@drawable/refresh"
+            android:background="#E8EEF2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:text="@string/retrieve"
+            android:onClick="retrieveSampleData"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="0dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:padding="20dp"
+            android:scaleType="fitCenter"/>
+
+        <ImageButton
+            android:src="@drawable/add_new_talk_btn"
+            android:background="#E8EEF2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:text="@string/addTalk"
+            android:onClick="startNewTalk"
+            android:layout_marginBottom="18dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="0dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:padding="5dp"
+            android:scaleType="fitCenter"/>
+    </LinearLayout>
+    <ListView
+        android:id="@+id/talkList"
+        android:layout_width="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#E8EEF2"
+        android:paddingBottom="10dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="5dp">
+    </ListView>
+</LinearLayout>

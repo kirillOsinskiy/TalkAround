@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class WebServiceTask extends AsyncTask<String, Integer, Object> {
 
-    public static final String SERVICE_URL = "http://192.168.1.64:8080/TalkAroundServer/rest/talk";
+    public static final String SERVICE_URL = "http://91.225.131.148:8191/TalkAroundServer/rest/talk";
 
     public static final int POST_TASK = 1;
     public static final int GET_TASK = 2;
@@ -86,9 +86,7 @@ public class WebServiceTask extends AsyncTask<String, Integer, Object> {
         Object result = null;
         try {
             result = doRequestForUrl(url);
-        } catch (URISyntaxException e) {
-            Log.e(TAG, e.getLocalizedMessage(), e);
-        } catch (IOException e) {
+        } catch (URISyntaxException | IOException e) {
             Log.e(TAG, e.getLocalizedMessage(), e);
         }
         return result;
@@ -101,9 +99,7 @@ public class WebServiceTask extends AsyncTask<String, Integer, Object> {
         } else {
             try {
                 result = inputStreamToObject(response.getEntity().getContent());
-            } catch (IOException e) {
-                Log.e(TAG, e.getLocalizedMessage(), e);
-            } catch (ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 Log.e(TAG, e.getLocalizedMessage(), e);
             }
         }
@@ -118,6 +114,7 @@ public class WebServiceTask extends AsyncTask<String, Integer, Object> {
             Log.e(TAG, e.getLocalizedMessage(), e);
         }
         pDlg.dismiss();
+        mContext = null;
     }
 
     private Object doRequestForUrl(String url) throws IOException, URISyntaxException {
