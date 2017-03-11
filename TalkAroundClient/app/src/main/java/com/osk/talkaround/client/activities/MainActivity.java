@@ -1,5 +1,6 @@
 package com.osk.talkaround.client.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -27,9 +28,9 @@ public class MainActivity extends AppCompatActivity {
     public static final String TALK_ID_PARAM = "talkIdParam";
     public static final String TALK_MSG_PARAM = "talkMsgParam";
 
-    public static final int DISTANCE_SMALL = 5;
-    public static final int DISTANCE_MEDIUM = 50;
-    public static final int DISTANCE_BIG = 500;
+    public static final int DISTANCE_SMALL = 100;
+    public static final int DISTANCE_MEDIUM = 500;
+    public static final int DISTANCE_BIG = 1000;
 
     public static int curDist = DISTANCE_SMALL;
     private ViewPagerAdapter adapter;
@@ -96,6 +97,12 @@ public class MainActivity extends AppCompatActivity {
 
         curDist = DISTANCE_SMALL;
         getData(DISTANCE_SMALL);
+        adapter.onDistChanged(DISTANCE_SMALL);
+    }
+
+    public void startNewTalk(View vw) {
+        Intent intent = new Intent(this, CreateNewTalkActivity.class);
+        startActivity(intent);
     }
 
     public void setLocationMedium(View view) {
@@ -105,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
 
         curDist = DISTANCE_MEDIUM;
         getData(DISTANCE_MEDIUM);
+        adapter.onDistChanged(DISTANCE_MEDIUM);
+
     }
 
     public void setLocationBig(View view) {
@@ -114,6 +123,11 @@ public class MainActivity extends AppCompatActivity {
 
         curDist = DISTANCE_BIG;
         getData(DISTANCE_BIG);
+        adapter.onDistChanged(DISTANCE_BIG);
+    }
+
+    public void refreshData() {
+        getData(curDist);
     }
 
     private void getData(int distance) {

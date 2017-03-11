@@ -8,4 +8,5 @@ import com.osk.talkaround.model.Talk;
 
 public interface OnDataUpdate {
     void updateTalks(Talk[] talks);
+    void onDistChanged(int metres);
 }

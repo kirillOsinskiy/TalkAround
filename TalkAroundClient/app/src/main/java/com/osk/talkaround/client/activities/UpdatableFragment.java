@@ -14,4 +14,9 @@ public class UpdatableFragment extends Fragment implements OnDataUpdate {
     public void updateTalks(Talk[] talks) {
 
     }
+
+    @Override
+    public void onDistChanged(int metres) {
+
+    }
 }
