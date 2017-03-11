@@ -41,10 +41,9 @@ public class DataAccessService {
 
     private static final String SELECT_AVAILABLE_TALKS =
             "SELECT id, creationdate, title, text, longitude, latitude from (" +
-                "SELECT id, creationdate, title, text, longitude, latitude, " +
-                "st_distance_sphere(st_makepoint(?, ?), st_makepoint(talk.longitude, talk.latitude)) AS distance " +
-                "FROM talk " +
-            ") as dist_table where distance < ?";
+                    "SELECT id, creationdate, title, text, longitude, latitude, " +
+                    "st_distance_sphere(st_makepoint(?, ?), st_makepoint(talk.longitude, talk.latitude)) AS distance " +
+                    "FROM talk) as dist_table where distance < ?";
     private static final String INSERT_NEW_TALK_SQL =
             "INSERT INTO Talk(creationdate, title, text, longitude, latitude) VALUES(?,?,?,?,?)";
     private static final String INSERT_NEW_ANSWER_FOR_TALK_SQL =
@@ -118,7 +117,8 @@ public class DataAccessService {
         return connection;
     }
 
-    public InputStream createNewTalkInputStream(InputStream inputStream) throws IOException, ClassNotFoundException {
+    public InputStream createNewTalkInputStream(InputStream inputStream)
+            throws IOException, ClassNotFoundException, SQLException {
         return getInputStreamFromObject(createNewTalk(inputStream));
     }
 
@@ -126,13 +126,8 @@ public class DataAccessService {
         return getInputStreamFromObject(talkList);
     }
 
-    public InputStream getAvailableTalks(Double longitude, Double latitude, Float distance) throws IOException {
-        ArrayList<Talk> resultList = new ArrayList<Talk>();
-        try {
-            resultList = getTalksForLocation(longitude, latitude, distance);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public InputStream getAvailableTalks(Double longitude, Double latitude, Float distance)
+            throws IOException, SQLException {
 //        CustomLocation location = new CustomLocation(longitude, latitude);
 //        for (Talk talk : talkList) {
 //            Float distanceBetween = CustomLocationUtils.distanceTo(location, talk.getLocation());
@@ -142,7 +137,7 @@ public class DataAccessService {
 //                resultList.add(talk);
 //            }
 //        }
-        return getInputStreamFromObject(resultList);
+        return getInputStreamFromObject(getTalksForLocation(longitude, latitude, distance));
     }
 
     private ArrayList<Talk> getTalksForLocation(Double longitude, Double latitude, Float distance) throws SQLException {
@@ -154,12 +149,7 @@ public class DataAccessService {
         ResultSet result = statement.executeQuery();
         ArrayList<Talk> talks = new ArrayList<Talk>();
         while (result.next()) {
-            talks.add(createTalk(BigInteger.valueOf(result.getInt(DB_TALK_ID)),
-                    result.getDate(DB_TALK_CREATION_DATE),
-                    result.getString(DB_TALK_TITLE),
-                    result.getString(DB_TALK_TEXT),
-                    result.getDouble(DB_TALK_LONGITUDE),
-                    result.getDouble(DB_TALK_LATITUDE)));
+            talks.add(createTalkFromResultSet(result));
         }
         return talks;
     }
@@ -168,11 +158,12 @@ public class DataAccessService {
         return getInputStreamFromObject(getTalkById(talkId));
     }
 
-    public synchronized InputStream addNewAnswerToTalkInputStream(InputStream inputStream) throws IOException, SQLException {
+    public synchronized InputStream addNewAnswerToTalkInputStream(InputStream inputStream)
+            throws IOException, SQLException, ClassNotFoundException {
         return getInputStreamFromObject(addNewAnswerToTalk(inputStream));
     }
 
-    private Talk createNewTalk(InputStream inputStream) throws IOException {
+    private Talk createNewTalk(InputStream inputStream) throws IOException, SQLException {
         Map<String, String> talkParams = getParamsFromInputStream(inputStream);
         // parse params
         String title = talkParams.get(TALK_TITLE);
@@ -181,13 +172,7 @@ public class DataAccessService {
         Double latitude = Double.valueOf(talkParams.get(TALK_LATITUDE));
         // create new talk
         Talk res = createTalk(title, text, longitude, latitude);
-        try {
-            if (storeTalkInDB(res)) {
-                talkList.add(res);//todo remove list later
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        storeTalkInDB(res);
         return res;
     }
 
@@ -208,12 +193,7 @@ public class DataAccessService {
         System.out.println(statement.toString());
         ResultSet result = statement.executeQuery();
         while (result.next()) {
-            Talk res = createTalk(BigInteger.valueOf(result.getInt(DB_TALK_ID)),
-                    result.getDate(DB_TALK_CREATION_DATE),
-                    result.getString(DB_TALK_TITLE),
-                    result.getString(DB_TALK_TEXT),
-                    result.getDouble(DB_TALK_LONGITUDE),
-                    result.getDouble(DB_TALK_LATITUDE));
+            Talk res = createTalkFromResultSet(result);
             res.setAnswerList(getAnswersForTalk(talkId));
             return res;
         }
@@ -248,7 +228,8 @@ public class DataAccessService {
         return answer;
     }
 
-    private synchronized Talk addNewAnswerToTalk(InputStream inputStream) throws IOException, SQLException {
+    private synchronized Talk addNewAnswerToTalk(InputStream inputStream)
+            throws IOException, SQLException, ClassNotFoundException {
         Map<String, String> talkParams = getParamsFromInputStream(inputStream);
         // parse request params
         String talkId = talkParams.get(TALK_ID);
@@ -257,21 +238,16 @@ public class DataAccessService {
         return addNewAnswerToTalk(talkId, answerText);
     }
 
-    private Talk addNewAnswer(Talk talk, String answerText) {
+    private Talk addNewAnswer(Talk talk, String answerText) throws SQLException, ClassNotFoundException {
         Answer answer = new Answer();
         answer.setId(generateAnswerId());
         answer.setTalkId(talk.getId());
         answer.setAnswerDate(Calendar.getInstance().getTime());
         answer.setMessage(answerText);
         answer.setOrderNumber(getLastOrderNumber(talk));
-        try {
-            storeAnswerInDB(answer);
-            talk.getAnswerList().add(answer);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+
+        storeAnswerInDB(answer);
+        talk.getAnswerList().add(answer);
         return talk;
     }
 
@@ -306,6 +282,15 @@ public class DataAccessService {
         return res;
     }
 
+    private Talk createTalkFromResultSet(ResultSet result) throws SQLException {
+        return createTalk(BigInteger.valueOf(result.getInt(DB_TALK_ID)),
+                result.getDate(DB_TALK_CREATION_DATE),
+                result.getString(DB_TALK_TITLE),
+                result.getString(DB_TALK_TEXT),
+                result.getDouble(DB_TALK_LONGITUDE),
+                result.getDouble(DB_TALK_LATITUDE));
+    }
+
     private synchronized BigInteger generateTalkId() {
         if (talkIdSeq == null) {
             talkIdSeq = new BigInteger("0");
@@ -330,7 +315,8 @@ public class DataAccessService {
         }
     }
 
-    private synchronized Talk addNewAnswerToTalk(String talkId, String answerText) throws SQLException {
+    private synchronized Talk addNewAnswerToTalk(String talkId, String answerText)
+            throws SQLException, ClassNotFoundException {
         Talk talk = this.getTalkById(talkId);
         talk = addNewAnswer(talk, answerText);
         // DEBUG info

@@ -62,6 +62,8 @@ public class TalkAroundServerEntry {
             return DataAccessService.getInstance().getAvailableTalks(longitude, latitude, distance);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
