@@ -81,7 +81,7 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
         super.onViewCreated(view, savedInstanceState);
 
         swipeLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
-        swipeLayout.setOnRefreshListener(this);
+       swipeLayout.setOnRefreshListener(this);
 
         setupRecyclerView(view);
 
@@ -97,10 +97,10 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
         adapter = new MessagesAdapter(new ArrayList<Talk>());
 
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getContext(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
+        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getActivity().getApplicationContext(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Intent intent = new Intent(getContext(), DisplayTalkActivity.class);
+                Intent intent = new Intent(getActivity().getApplicationContext(), DisplayTalkActivity.class);
                 Talk itemValue = adapter.getTalksList().get(position);
                 intent.putExtra(TALK_ID_PARAM, String.valueOf(itemValue.getId()));
                 startActivity(intent);
@@ -138,7 +138,7 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
             public void run() {
                 if (swipeLayout != null && swipeLayout.isRefreshing()) {
                     swipeLayout.setRefreshing(false);
-                    Toast.makeText(getContext(), getString(R.string.error), Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity().getApplicationContext(), getString(R.string.error), Toast.LENGTH_LONG).show();
                 }
             }
         }, 5000);

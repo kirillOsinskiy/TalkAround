@@ -1,15 +1,12 @@
 <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/swipe_container"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:clickable="false"
-    android:focusable="false">
+    android:layout_height="wrap_content">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="false"
-        android:focusable="false"
+
         android:orientation="vertical">
 
         <android.support.v7.widget.RecyclerView
@@ -18,12 +15,9 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:background="#E8EEF2"
-            android:clickable="false"
-            android:focusable="false"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:paddingTop="8dp" />
-
     </LinearLayout>
 </android.support.v4.widget.SwipeRefreshLayout>
 
