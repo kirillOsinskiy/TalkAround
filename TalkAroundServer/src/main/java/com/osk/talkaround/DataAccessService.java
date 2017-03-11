@@ -3,7 +3,6 @@ package com.osk.talkaround;
 import com.osk.talkaround.model.Answer;
 import com.osk.talkaround.model.CustomLocation;
 import com.osk.talkaround.model.Talk;
-import com.osk.talkaround.utils.CustomLocationUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
@@ -13,17 +12,19 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 /**
  * Created by KOsinsky on 19.03.2016.
@@ -31,7 +32,6 @@ import java.util.Map;
 public class DataAccessService {
 
     public final static String TALK_ID = "talkId";
-    public final static String TALK_CREATIONDATE = "creationdate";
     public final static String TALK_TITLE = "talkTitle";
     public final static String TALK_TEXT = "talkText";
     public final static String TALK_LATITUDE = "talkLatitude";
@@ -39,7 +39,30 @@ public class DataAccessService {
     public final static String TALK_DISTANCE = "distance";
     public final static String ANSWER_TEXT = "answerText";
 
-    private final static String TALK_TABLE_NAME = "talk";
+    private static final String SELECT_AVAILABLE_TALKS =
+            "SELECT id, creationdate, title, text, longitude, latitude from (" +
+                    "SELECT id, creationdate, title, text, longitude, latitude, " +
+                    "st_distance_sphere(st_makepoint(?, ?), st_makepoint(talk.longitude, talk.latitude)) AS distance " +
+                    "FROM talk) as dist_table where distance < ?";
+    private static final String INSERT_NEW_TALK_SQL =
+            "INSERT INTO Talk(creationdate, title, text, longitude, latitude) VALUES(?,?,?,?,?)";
+    private static final String INSERT_NEW_ANSWER_FOR_TALK_SQL =
+            "INSERT INTO answer(talkid, ordernumber, answerdate, message) VALUES(?,?,?,?)";
+    private static final String SELECT_TALK_BY_ID = "SELECT * FROM talk WHERE id = ?";
+    private static final String SELECT_ANSWERS_BY_TALK_ID = "SELECT * FROM answer WHERE talkid = ?";
+
+    public final static String DB_TALK_ID = "id";
+    public final static String DB_TALK_CREATION_DATE = "creationdate";
+    public final static String DB_TALK_TITLE = "title";
+    public final static String DB_TALK_TEXT = "text";
+    public final static String DB_TALK_LATITUDE = "latitude";
+    public final static String DB_TALK_LONGITUDE = "longitude";
+
+    private static final String DB_ANSWER_ID = "id";
+    private static final String DB_ANSWER_ORDER_NUM = "ordernumber";
+    private static final String DB_ANSWER_TALK_ID = "talkid";
+    private static final String DB_ANSWER_DATE = "answerdate";
+    private static final String DB_ANSWER_MSG = "message";
 
     private static volatile List<Talk> talkList = new ArrayList<Talk>();
 
@@ -78,14 +101,24 @@ public class DataAccessService {
         }
     }
 
-    private Connection openNewConnection() throws ClassNotFoundException, SQLException {
-        Class.forName(JDBC_DRIVER);
-        Connection connection = DriverManager.getConnection(DB_URL, USER, PASS);
+    private Connection openNewConnection() {
+        try {
+            Class.forName(JDBC_DRIVER);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(DB_URL, USER, PASS);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         System.out.println("Opened database successfully");
-        return  connection;
+        return connection;
     }
 
-    public InputStream createNewTalkInputStream(InputStream inputStream) throws IOException, ClassNotFoundException {
+    public InputStream createNewTalkInputStream(InputStream inputStream)
+            throws IOException, ClassNotFoundException, SQLException {
         return getInputStreamFromObject(createNewTalk(inputStream));
     }
 
@@ -93,55 +126,44 @@ public class DataAccessService {
         return getInputStreamFromObject(talkList);
     }
 
-    public InputStream getAvailableTalks(Double longitude, Double latitude, Float distance) throws IOException {
-        ArrayList<Talk> resultList = new ArrayList<Talk>();
-//        try {
-//            resultList = getTalksForLocation(longitude, latitude, distance);
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
+    public InputStream getAvailableTalks(Double longitude, Double latitude, Float distance)
+            throws IOException, SQLException {
+//        CustomLocation location = new CustomLocation(longitude, latitude);
+//        for (Talk talk : talkList) {
+//            Float distanceBetween = CustomLocationUtils.distanceTo(location, talk.getLocation());
+//            System.out.println("Distance between user and talk " + talk.getTitle() + " is " + distanceBetween);
+//            if (distanceBetween <= distance) {
+//                talk.setDistance(distanceBetween);
+//                resultList.add(talk);
+//            }
 //        }
-        CustomLocation location = new CustomLocation(longitude, latitude);
-        for (Talk talk : talkList) {
-            Float distanceBetween = CustomLocationUtils.distanceTo(location, talk.getLocation());
-            System.out.println("Distance between user and talk " + talk.getTitle() + " is " + distanceBetween);
-            if(distanceBetween <= distance) {
-                talk.setDistance(distanceBetween);
-                resultList.add(talk);
-            }
-        }
-        return getInputStreamFromObject(resultList);
+        return getInputStreamFromObject(getTalksForLocation(longitude, latitude, distance));
     }
 
-    private ArrayList<Talk> getTalksForLocation(Double longitude, Double latitude, Float distance) throws SQLException, ClassNotFoundException {
-        Connection conn = openNewConnection();
-        Statement statement = null;
-        statement = conn.createStatement();
-//        String query = String.format("SELECT talk.*, " +
-//                "(point("+longitude+","+latitude+") <@> point(talk.longitude, talk.latitude)) as distance FROM %s talk " +
-//                "WHERE distance<" + distance, TALK_TABLE_NAME);
-        String query = String.format("SELECT talk.* FROM %s talk",TALK_TABLE_NAME);
-        System.out.println(query);
-        ResultSet result = statement.executeQuery(query);
+    private ArrayList<Talk> getTalksForLocation(Double longitude, Double latitude, Float distance) throws SQLException {
+        PreparedStatement statement = openNewConnection().prepareStatement(SELECT_AVAILABLE_TALKS);
+        statement.setDouble(1, longitude);
+        statement.setDouble(2, latitude);
+        statement.setFloat(3, distance);
+        System.out.println(statement.toString());
+        ResultSet result = statement.executeQuery();
         ArrayList<Talk> talks = new ArrayList<Talk>();
         while (result.next()) {
-            talks.add(createTalk(BigInteger.valueOf(result.getInt(TALK_ID)), result.getDate(TALK_CREATIONDATE),
-                                 result.getString(TALK_TITLE),result.getString(TALK_TEXT),
-                                 result.getDouble(TALK_LONGITUDE), result.getDouble(TALK_LATITUDE)));
+            talks.add(createTalkFromResultSet(result));
         }
         return talks;
     }
 
-    public InputStream getTalkByIdInputStream(String talkId) throws IOException {
+    public InputStream getTalkByIdInputStream(String talkId) throws IOException, SQLException {
         return getInputStreamFromObject(getTalkById(talkId));
     }
 
-    public synchronized InputStream addNewAnswerToTalkInputStream(InputStream inputStream) throws IOException, ClassNotFoundException {
+    public synchronized InputStream addNewAnswerToTalkInputStream(InputStream inputStream)
+            throws IOException, SQLException, ClassNotFoundException {
         return getInputStreamFromObject(addNewAnswerToTalk(inputStream));
     }
 
-    private Talk createNewTalk(InputStream inputStream) throws IOException, ClassNotFoundException {
+    private Talk createNewTalk(InputStream inputStream) throws IOException, SQLException {
         Map<String, String> talkParams = getParamsFromInputStream(inputStream);
         // parse params
         String title = talkParams.get(TALK_TITLE);
@@ -150,21 +172,64 @@ public class DataAccessService {
         Double latitude = Double.valueOf(talkParams.get(TALK_LATITUDE));
         // create new talk
         Talk res = createTalk(title, text, longitude, latitude);
-        talkList.add(res);
+        storeTalkInDB(res);
         return res;
     }
 
-    private Talk getTalkById(String talkId) {
-        BigInteger id = new BigInteger(talkId);
-        for(Talk t : talkList) {
-            if(id.equals(t.getId())) {
-                return t;
-            }
-        }
-        throw new RuntimeException(String.format("Talk with ID %s no found!", id));
+    private boolean storeTalkInDB(Talk res) throws SQLException {
+        PreparedStatement statement = openNewConnection().prepareStatement(INSERT_NEW_TALK_SQL);
+        statement.setTimestamp(1, new java.sql.Timestamp(res.getCreationDate().getTime()));
+        statement.setString(2, res.getTitle());
+        statement.setString(3, res.getText());
+        statement.setDouble(4, res.getLocation().getLongitude());
+        statement.setDouble(5, res.getLocation().getLatitude());
+        System.out.println(statement.toString());
+        return statement.execute();
     }
 
-    private synchronized Talk addNewAnswerToTalk(InputStream inputStream) throws IOException, ClassNotFoundException {
+    private Talk getTalkById(String talkId) throws SQLException {
+        PreparedStatement statement = openNewConnection().prepareStatement(SELECT_TALK_BY_ID);
+        statement.setInt(1, Integer.valueOf(talkId));
+        System.out.println(statement.toString());
+        ResultSet result = statement.executeQuery();
+        while (result.next()) {
+            Talk res = createTalkFromResultSet(result);
+            res.setAnswerList(getAnswersForTalk(talkId));
+            return res;
+        }
+        throw new RuntimeException("Talk with id = " + talkId + " not found.");
+    }
+
+    private TreeSet<Answer> getAnswersForTalk(String talkId) throws SQLException {
+        Connection conn = openNewConnection();
+        PreparedStatement statement = conn.prepareStatement(SELECT_ANSWERS_BY_TALK_ID);
+        statement.setInt(1, Integer.valueOf(talkId));
+        System.out.println(statement.toString());
+        ResultSet result = statement.executeQuery();
+        TreeSet<Answer> answers = new TreeSet<Answer>();
+        while (result.next()) {
+            Answer answer = createAnswer(result.getLong(DB_ANSWER_ID),
+                    result.getLong(DB_ANSWER_ORDER_NUM),
+                    result.getLong(DB_ANSWER_TALK_ID),
+                    result.getDate(DB_ANSWER_DATE),
+                    result.getString(DB_ANSWER_MSG));
+            answers.add(answer);
+        }
+        return answers;
+    }
+
+    private Answer createAnswer(long answerId, long orderNumber, long talkId, Date answerDate, String msg) {
+        Answer answer = new Answer();
+        answer.setId(BigInteger.valueOf(answerId));
+        answer.setOrderNumber(orderNumber);
+        answer.setTalkId(BigInteger.valueOf(talkId));
+        answer.setAnswerDate(answerDate);
+        answer.setMessage(msg);
+        return answer;
+    }
+
+    private synchronized Talk addNewAnswerToTalk(InputStream inputStream)
+            throws IOException, SQLException, ClassNotFoundException {
         Map<String, String> talkParams = getParamsFromInputStream(inputStream);
         // parse request params
         String talkId = talkParams.get(TALK_ID);
@@ -173,16 +238,28 @@ public class DataAccessService {
         return addNewAnswerToTalk(talkId, answerText);
     }
 
-    private Talk addNewAnswer(Talk talk, String answerText) {
-        synchronized (talk) {
-            Answer answer = new Answer();
-            answer.setId(generateAnswerId());
-            answer.setAnswerDate(Calendar.getInstance().getTime());
-            answer.setOrderNumber(getLastOrderNumber(talk));
-            answer.setMessage(answerText);
-            talk.getAnswerList().add(answer);
-            return talk;
-        }
+    private Talk addNewAnswer(Talk talk, String answerText) throws SQLException, ClassNotFoundException {
+        Answer answer = new Answer();
+        answer.setId(generateAnswerId());
+        answer.setTalkId(talk.getId());
+        answer.setAnswerDate(Calendar.getInstance().getTime());
+        answer.setMessage(answerText);
+        answer.setOrderNumber(getLastOrderNumber(talk));
+
+        storeAnswerInDB(answer);
+        talk.getAnswerList().add(answer);
+        return talk;
+    }
+
+    private boolean storeAnswerInDB(Answer answer) throws SQLException, ClassNotFoundException {
+        Connection conn = openNewConnection();
+        PreparedStatement statement = conn.prepareStatement(INSERT_NEW_ANSWER_FOR_TALK_SQL);
+        statement.setLong(1, answer.getTalkId().longValue());
+        statement.setLong(2, answer.getOrderNumber());
+        statement.setTimestamp(3, new Timestamp(answer.getAnswerDate().getTime()));
+        statement.setString(4, answer.getMessage());
+        System.out.println(statement.toString());
+        return statement.execute();
     }
 
     private Talk createTalk(BigInteger id, Date creationDate, String title, String text, Double longitude, Double latitude) {
@@ -205,8 +282,17 @@ public class DataAccessService {
         return res;
     }
 
+    private Talk createTalkFromResultSet(ResultSet result) throws SQLException {
+        return createTalk(BigInteger.valueOf(result.getInt(DB_TALK_ID)),
+                result.getDate(DB_TALK_CREATION_DATE),
+                result.getString(DB_TALK_TITLE),
+                result.getString(DB_TALK_TEXT),
+                result.getDouble(DB_TALK_LONGITUDE),
+                result.getDouble(DB_TALK_LATITUDE));
+    }
+
     private synchronized BigInteger generateTalkId() {
-        if(talkIdSeq==null) {
+        if (talkIdSeq == null) {
             talkIdSeq = new BigInteger("0");
         } else {
             talkIdSeq = talkIdSeq.add(new BigInteger("1"));
@@ -215,7 +301,7 @@ public class DataAccessService {
     }
 
     private synchronized BigInteger generateAnswerId() {
-        if(answerIdSeq==null) {
+        if (answerIdSeq == null) {
             answerIdSeq = new BigInteger("0");
         } else {
             answerIdSeq = answerIdSeq.add(new BigInteger("1"));
@@ -229,24 +315,30 @@ public class DataAccessService {
         }
     }
 
-    private synchronized Talk addNewAnswerToTalk(String talkId, String answerText) {
+    private synchronized Talk addNewAnswerToTalk(String talkId, String answerText)
+            throws SQLException, ClassNotFoundException {
         Talk talk = this.getTalkById(talkId);
         talk = addNewAnswer(talk, answerText);
         // DEBUG info
         System.out.println("Adding new answer to talk with ID: " + talkId);
         System.out.println("Talk has answers:");
-        for(Answer answer : talk.getAnswerList()) {
+        for (Answer answer : talk.getAnswerList()) {
             System.out.println(String.format("%d: %s", answer.getOrderNumber(), answer.getMessage()));
         }
         return talk;
     }
 
-    private static Map<String, String> getParamsFromInputStream(InputStream inputStream) throws IOException, ClassNotFoundException {
+    private static Map<String, String> getParamsFromInputStream(InputStream inputStream) throws IOException {
         try {
             byte[] bytes = IOUtils.toByteArray(inputStream);
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-            return (Map<String, String>)objectInputStream.readObject();
+            try {
+                return (Map<String, String>) objectInputStream.readObject();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            return new HashMap<String, String>();
         } finally {
             inputStream.close();
         }

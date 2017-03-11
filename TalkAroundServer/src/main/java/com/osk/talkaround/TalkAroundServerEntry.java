@@ -12,6 +12,7 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 
 /**
  * Created by KOsinsky on 19.03.2016.
@@ -61,6 +62,8 @@ public class TalkAroundServerEntry {
             return DataAccessService.getInstance().getAvailableTalks(longitude, latitude, distance);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -73,6 +76,8 @@ public class TalkAroundServerEntry {
         try {
             return DataAccessService.getInstance().getTalkByIdInputStream(talkId);
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
