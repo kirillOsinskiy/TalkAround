@@ -1,6 +1,10 @@
 CREATE USER talkaround WITH PASSWORD 'talkaround';
 CREATE DATABASE talkaroundbase OWNER talkaround;
 
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+CREATE EXTENSION postgis_tiger_geocoder;
+
 CREATE TABLE talk
 (
     id SERIAL PRIMARY KEY NOT NULL,

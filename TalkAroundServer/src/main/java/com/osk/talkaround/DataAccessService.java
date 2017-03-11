@@ -32,7 +32,6 @@ import java.util.TreeSet;
 public class DataAccessService {
 
     public final static String TALK_ID = "talkId";
-    public final static String TALK_CREATIONDATE = "creationdate";
     public final static String TALK_TITLE = "talkTitle";
     public final static String TALK_TEXT = "talkText";
     public final static String TALK_LATITUDE = "talkLatitude";
@@ -40,23 +39,31 @@ public class DataAccessService {
     public final static String TALK_DISTANCE = "distance";
     public final static String ANSWER_TEXT = "answerText";
 
-    private final static String TALK_TABLE_NAME = "talk";
-
-    private static final String SELECT_AVAILABLE_TALKS = "SELECT talk.* FROM talk";
+    private static final String SELECT_AVAILABLE_TALKS =
+            "SELECT id, creationdate, title, text, longitude, latitude from (" +
+                "SELECT id, creationdate, title, text, longitude, latitude, " +
+                "st_distance_sphere(st_makepoint(?, ?), st_makepoint(talk.longitude, talk.latitude)) AS distance " +
+                "FROM talk " +
+            ") as dist_table where distance < ?";
     private static final String INSERT_NEW_TALK_SQL =
-            "INSERT INTO Talk(creationdate, title, text, longitude, latitude) " +
-                    "VALUES(?,?,?,?,?)";
+            "INSERT INTO Talk(creationdate, title, text, longitude, latitude) VALUES(?,?,?,?,?)";
     private static final String INSERT_NEW_ANSWER_FOR_TALK_SQL =
-            "INSERT INTO answer(talkid, ordernumber, answerdate, message) " +
-                    "VALUES(?,?,?,?)";
-    private static final String SELECT_TALK_BY_ID = "SELECT * FROM " + TALK_TABLE_NAME + " WHERE id = ?";
+            "INSERT INTO answer(talkid, ordernumber, answerdate, message) VALUES(?,?,?,?)";
+    private static final String SELECT_TALK_BY_ID = "SELECT * FROM talk WHERE id = ?";
     private static final String SELECT_ANSWERS_BY_TALK_ID = "SELECT * FROM answer WHERE talkid = ?";
 
-    private static final String ANSWER_ID = "id";
-    private static final String ANSWER_ORDER_NUM = "ordernumber";
-    private static final String ANSWER_TALK_ID = "talkid";
-    private static final String ANSWER_DATE = "answerdate";
-    private static final String ANSWER_MSG = "message";
+    public final static String DB_TALK_ID = "id";
+    public final static String DB_TALK_CREATION_DATE = "creationdate";
+    public final static String DB_TALK_TITLE = "title";
+    public final static String DB_TALK_TEXT = "text";
+    public final static String DB_TALK_LATITUDE = "latitude";
+    public final static String DB_TALK_LONGITUDE = "longitude";
+
+    private static final String DB_ANSWER_ID = "id";
+    private static final String DB_ANSWER_ORDER_NUM = "ordernumber";
+    private static final String DB_ANSWER_TALK_ID = "talkid";
+    private static final String DB_ANSWER_DATE = "answerdate";
+    private static final String DB_ANSWER_MSG = "message";
 
     private static volatile List<Talk> talkList = new ArrayList<Talk>();
 
@@ -139,21 +146,20 @@ public class DataAccessService {
     }
 
     private ArrayList<Talk> getTalksForLocation(Double longitude, Double latitude, Float distance) throws SQLException {
-        Connection conn = openNewConnection();
-        PreparedStatement statement = conn.prepareStatement(SELECT_AVAILABLE_TALKS);
-//        String query = String.format("SELECT talk.*, " +
-//                "(point("+longitude+","+latitude+") <@> point(talk.longitude, talk.latitude)) as distance FROM %s talk " +
-//                "WHERE distance<" + distance, TALK_TABLE_NAME);
+        PreparedStatement statement = openNewConnection().prepareStatement(SELECT_AVAILABLE_TALKS);
+        statement.setDouble(1, longitude);
+        statement.setDouble(2, latitude);
+        statement.setFloat(3, distance);
         System.out.println(statement.toString());
         ResultSet result = statement.executeQuery();
         ArrayList<Talk> talks = new ArrayList<Talk>();
         while (result.next()) {
-            talks.add(createTalk(BigInteger.valueOf(result.getInt(1)),
-                    result.getDate(2),
-                    result.getString(3),
-                    result.getString(4),
-                    result.getDouble(5),
-                    result.getDouble(6)));
+            talks.add(createTalk(BigInteger.valueOf(result.getInt(DB_TALK_ID)),
+                    result.getDate(DB_TALK_CREATION_DATE),
+                    result.getString(DB_TALK_TITLE),
+                    result.getString(DB_TALK_TEXT),
+                    result.getDouble(DB_TALK_LONGITUDE),
+                    result.getDouble(DB_TALK_LATITUDE)));
         }
         return talks;
     }
@@ -186,8 +192,7 @@ public class DataAccessService {
     }
 
     private boolean storeTalkInDB(Talk res) throws SQLException {
-        Connection conn = openNewConnection();
-        PreparedStatement statement = conn.prepareStatement(INSERT_NEW_TALK_SQL);
+        PreparedStatement statement = openNewConnection().prepareStatement(INSERT_NEW_TALK_SQL);
         statement.setTimestamp(1, new java.sql.Timestamp(res.getCreationDate().getTime()));
         statement.setString(2, res.getTitle());
         statement.setString(3, res.getText());
@@ -198,18 +203,17 @@ public class DataAccessService {
     }
 
     private Talk getTalkById(String talkId) throws SQLException {
-        Connection conn = openNewConnection();
-        PreparedStatement statement = conn.prepareStatement(SELECT_TALK_BY_ID);
+        PreparedStatement statement = openNewConnection().prepareStatement(SELECT_TALK_BY_ID);
         statement.setInt(1, Integer.valueOf(talkId));
         System.out.println(statement.toString());
         ResultSet result = statement.executeQuery();
         while (result.next()) {
-            Talk res = createTalk(BigInteger.valueOf(result.getInt(1)),
-                    result.getDate(2),
-                    result.getString(3),
-                    result.getString(4),
-                    result.getDouble(5),
-                    result.getDouble(6));
+            Talk res = createTalk(BigInteger.valueOf(result.getInt(DB_TALK_ID)),
+                    result.getDate(DB_TALK_CREATION_DATE),
+                    result.getString(DB_TALK_TITLE),
+                    result.getString(DB_TALK_TEXT),
+                    result.getDouble(DB_TALK_LONGITUDE),
+                    result.getDouble(DB_TALK_LATITUDE));
             res.setAnswerList(getAnswersForTalk(talkId));
             return res;
         }
@@ -224,11 +228,11 @@ public class DataAccessService {
         ResultSet result = statement.executeQuery();
         TreeSet<Answer> answers = new TreeSet<Answer>();
         while (result.next()) {
-            Answer answer = createAnswer(result.getLong(ANSWER_ID),
-                    result.getLong(ANSWER_ORDER_NUM),
-                    result.getLong(ANSWER_TALK_ID),
-                    result.getDate(ANSWER_DATE),
-                    result.getString(ANSWER_MSG));
+            Answer answer = createAnswer(result.getLong(DB_ANSWER_ID),
+                    result.getLong(DB_ANSWER_ORDER_NUM),
+                    result.getLong(DB_ANSWER_TALK_ID),
+                    result.getDate(DB_ANSWER_DATE),
+                    result.getString(DB_ANSWER_MSG));
             answers.add(answer);
         }
         return answers;
@@ -242,16 +246,6 @@ public class DataAccessService {
         answer.setAnswerDate(answerDate);
         answer.setMessage(msg);
         return answer;
-    }
-
-    private Talk getTalkByIdOld(String talkId) {
-        BigInteger id = new BigInteger(talkId);
-        for (Talk t : talkList) {
-            if (id.equals(t.getId())) {
-                return t;
-            }
-        }
-        throw new RuntimeException(String.format("Talk with ID %s no found!", id));
     }
 
     private synchronized Talk addNewAnswerToTalk(InputStream inputStream) throws IOException, SQLException {
