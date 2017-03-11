@@ -2,6 +2,7 @@ package com.osk.talkaround.client.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.osk.talkaroundclient.R;
 import com.osk.talkaround.client.adapters.TalkListArrayAdapter;
@@ -27,7 +29,8 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
+    private boolean isViewCreated;
+    private Talk[] talks;
     //private OnFragmentInteractionListener mListener;
 
     public MessagesFragment() {
@@ -88,15 +91,20 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
             }
 
         });
-        //getData(curDist);
+        isViewCreated = true;
+        if (talks != null)
+            updateTalks(talks);
     }
 
     @Override
     public void updateTalks(Talk[] talks) {
-        fillTalksList(talks);
         if (swipeLayout != null && swipeLayout.isRefreshing()) {
             swipeLayout.setRefreshing(false);
         }
+        if (isViewCreated)
+            fillTalksList(talks);
+        else
+            this.talks = talks;
     }
 
     public void fillTalksList(Talk[] talks) {
@@ -107,6 +115,15 @@ public class MessagesFragment extends UpdatableFragment implements SwipeRefreshL
     @Override
     public void onRefresh() {
         ((MainActivity) getActivity()).refreshData();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (swipeLayout != null && swipeLayout.isRefreshing()) {
+                    swipeLayout.setRefreshing(false);
+                    Toast.makeText(getContext(), getString(R.string.error), Toast.LENGTH_LONG).show();
+                }
+            }
+        }, 5000);
     }
 
 

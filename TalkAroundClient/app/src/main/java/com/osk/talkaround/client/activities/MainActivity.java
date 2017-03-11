@@ -6,6 +6,9 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -35,12 +38,10 @@ public class MainActivity extends AppCompatActivity {
     public static int curDist = DISTANCE_SMALL;
     private ViewPagerAdapter adapter;
     private Toolbar toolbar;
-    private TextView tvTalksCount;
+    //private TextView tvTalksCount;
     private ImageView smallLocBtn;
     private ImageView mediumLocBtn;
     private ImageView bigLocBtn;
-
-    private GoogleMap mMap;
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = ((TabLayout) findViewById(R.id.tabs));
         ViewPager viewPager = ((ViewPager) findViewById(R.id.viewpager));
         String[] titles = getResources().getStringArray(R.array.tab_titles);
-        tvTalksCount = (TextView) findViewById(R.id.talksCount);
+       // tvTalksCount = (TextView) findViewById(R.id.talksCount);
         adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         adapter.addFragment(new MessagesFragment(), titles[0]);
@@ -100,10 +101,9 @@ public class MainActivity extends AppCompatActivity {
         adapter.onDistChanged(DISTANCE_SMALL);
     }
 
-    public void startNewTalk(View vw) {
-        Intent intent = new Intent(this, CreateNewTalkActivity.class);
-        startActivity(intent);
-    }
+/*    public void startNewTalk(View vw) {
+
+    }*/
 
     public void setLocationMedium(View view) {
         smallLocBtn.setImageResource(R.drawable.round_unselected);
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                     List<Talk> talkList = (List<Talk>) response;
                     Talk[] talks = talkList.toArray(new Talk[talkList.size()]);
                     adapter.updateTalks(talks);
-                    tvTalksCount.setText(String.format("Found %d talk(s)", talkList.size()));
+                    //tvTalksCount.setText(String.format("Found %d talk(s)", talkList.size()));
                 }
 
             }
@@ -153,6 +153,23 @@ public class MainActivity extends AppCompatActivity {
         wst.execute(WebServiceTask.SERVICE_URL.concat("/getTalksWithParams"));
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
 
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.add) {
+            Intent intent = new Intent(this, CreateNewTalkActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
 }
