@@ -24,6 +24,7 @@ CREATE TABLE answer
     ordernumber INT NOT NULL,
     answerdate timestamp  NOT NULL,
     message VARCHAR(256) NOT NULL,
+    attachment VARCHAR(256),
     FOREIGN KEY (talkid) REFERENCES talk (id)
 );
 ALTER TABLE public.Answer

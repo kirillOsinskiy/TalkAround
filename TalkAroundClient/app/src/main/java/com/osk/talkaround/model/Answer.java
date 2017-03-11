@@ -1,5 +1,6 @@
 package com.osk.talkaround.model;
 
+import java.io.File;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Date;
@@ -14,6 +15,7 @@ public class Answer implements Serializable, Comparable {
     private long orderNumber;
     private Date answerDate;
     private String message;
+    private File attachment;
 
     public BigInteger getId() {
         return id;
@@ -53,6 +55,14 @@ public class Answer implements Serializable, Comparable {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public File getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(File attachment) {
+        this.attachment = attachment;
     }
 
     @Override
