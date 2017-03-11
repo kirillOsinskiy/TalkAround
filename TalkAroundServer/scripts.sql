@@ -4,7 +4,7 @@ CREATE DATABASE talkaroundbase OWNER talkaround;
 CREATE TABLE talk
 (
     id SERIAL PRIMARY KEY NOT NULL,
-    creationdate DATE NOT NULL,
+    creationdate timestamp NOT NULL,
     title VARCHAR(64) NOT NULL,
     text VARCHAR(128),
     longitude DOUBLE PRECISION NOT NULL,
@@ -16,9 +16,9 @@ ALTER TABLE Talk
 CREATE TABLE answer
 (
     id SERIAL PRIMARY KEY NOT NULL,
-    talkid NUMERIC(131089) NOT NULL,
+    talkid NUMERIC(1000) NOT NULL,
     ordernumber INT NOT NULL,
-    answerdate DATE NOT NULL,
+    answerdate timestamp  NOT NULL,
     message VARCHAR(256) NOT NULL,
     FOREIGN KEY (talkid) REFERENCES talk (id)
 );
