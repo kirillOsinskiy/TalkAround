@@ -49,4 +49,11 @@ public class ViewPagerAdapter extends FragmentPagerAdapter implements OnDataUpda
             updatableFragment.updateTalks(talks);
         }
     }
+
+    @Override
+    public void onDistChanged(int metres) {
+        for (UpdatableFragment updatableFragment : mFragmentList) {
+            updatableFragment.onDistChanged(metres);
+        }
+    }
 }

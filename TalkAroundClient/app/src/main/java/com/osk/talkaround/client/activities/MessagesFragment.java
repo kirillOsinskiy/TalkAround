@@ -3,35 +3,26 @@ package com.osk.talkaround.client.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.example.osk.talkaroundclient.R;
 import com.osk.talkaround.client.adapters.TalkListArrayAdapter;
-import com.osk.talkaround.client.WebserviceUtils.ResponseHandler;
-import com.osk.talkaround.client.WebserviceUtils.WebServiceTask;
-import com.osk.talkaround.client.utils.GPSTracker;
 import com.osk.talkaround.model.Talk;
-
-import org.json.JSONException;
-
-import java.util.List;
 
 import static com.osk.talkaround.client.activities.MainActivity.TALK_ID_PARAM;
 
 
-public class MessagesFragment extends UpdatableFragment {
+public class MessagesFragment extends UpdatableFragment implements SwipeRefreshLayout.OnRefreshListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
+    private SwipeRefreshLayout swipeLayout;
     private ListView talksListView;
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -81,6 +72,9 @@ public class MessagesFragment extends UpdatableFragment {
         super.onViewCreated(view, savedInstanceState);
         talksListView = (ListView) view.findViewById(R.id.talkList);
         // ListView Item Click Listener
+        swipeLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
+        swipeLayout.setOnRefreshListener(this);
+
         talksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -99,7 +93,10 @@ public class MessagesFragment extends UpdatableFragment {
 
     @Override
     public void updateTalks(Talk[] talks) {
-       fillTalksList(talks);
+        fillTalksList(talks);
+        if (swipeLayout != null && swipeLayout.isRefreshing()) {
+            swipeLayout.setRefreshing(false);
+        }
     }
 
     public void fillTalksList(Talk[] talks) {
@@ -107,14 +104,14 @@ public class MessagesFragment extends UpdatableFragment {
         talksListView.setAdapter(adapter);
     }
 
-    /*public void retrieveSampleData(View vw) {
-        getData(curDist);
-    }*/
-
-    public void startNewTalk(View vw) {
-        Intent intent = new Intent(getContext(), CreateNewTalkActivity.class);
-        startActivity(intent);
+    @Override
+    public void onRefresh() {
+        ((MainActivity) getActivity()).refreshData();
     }
+
+
+
+
     /* // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
