@@ -1,8 +1,14 @@
 package com.osk.talkaround.client.activities;
 
 import android.Manifest;
+import android.animation.IntEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,6 +18,7 @@ import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.example.osk.talkaroundclient.R;
 import com.google.android.gms.common.ConnectionResult;
@@ -24,9 +31,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -57,10 +66,12 @@ public class MapFragment extends UpdatableFragment implements
     private boolean isMapReady;
     private Location mLastLocation;
     private Circle lastCircle;
+    private GroundOverlay circle;
+    private ValueAnimator valueAnimator;
     private List<Marker> lastMarkers = new ArrayList<>();
 
     private Talk[] talks;
-    private int metres = 0;
+    private int metres = MainActivity.DISTANCE_SMALL;
 
     public MapFragment() {
     }
@@ -262,19 +273,61 @@ public class MapFragment extends UpdatableFragment implements
 
     @Override
     public void onDistChanged(int metres) {
-        this.metres = metres;
         if (mLastLocation == null || !isMapReady) return;
-        updatePosition();
+//        updatePosition();
+        drawCircleOnMapWithRadius(metres);
+        this.metres = metres;
+    }
+
+    private void drawCircleOnMapWithRadius(final int metres) {
+        GradientDrawable gradientDrawable = new GradientDrawable();
+        gradientDrawable.setShape(GradientDrawable.OVAL);
+        gradientDrawable.setSize(500,500);
+        gradientDrawable.setColor(ContextCompat.getColor(getContext(), R.color.colorAccentAlpha));
+        gradientDrawable.setStroke(5, Color.TRANSPARENT);
+
+        Bitmap bitmap = Bitmap.createBitmap(gradientDrawable.getIntrinsicWidth()
+                , gradientDrawable.getIntrinsicHeight()
+                , Bitmap.Config.ARGB_8888);
+
+        // Convert the drawable to bitmap
+        Canvas canvas = new Canvas(bitmap);
+        gradientDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        gradientDrawable.draw(canvas);
+        // Radius of the circle
+        final int radius = metres;
+//        if (circle != null) circle.remove();
+        // Add the circle to the map
+        if(circle==null) {
+            circle = googleMap.addGroundOverlay(new GroundOverlayOptions()
+                    .position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()),
+                            2 * radius).image(BitmapDescriptorFactory.fromBitmap(bitmap)));
+        }
+        if(valueAnimator==null) {
+            valueAnimator = new ValueAnimator();
+            valueAnimator.setDuration(1000);
+            valueAnimator.setEvaluator(new IntEvaluator());
+            valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        }
+        valueAnimator.setIntValues(this.metres, metres);
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                int animatedFraction = (int) valueAnimator.getAnimatedValue();
+                circle.setDimensions(animatedFraction * 2);
+            }
+        });
+        valueAnimator.start();
     }
 
     private void updatePosition() {
         if (lastCircle != null) lastCircle.remove();
-        CircleOptions co = new CircleOptions();
-        co.center(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()));
-        co.radius(metres);
-        co.fillColor(ContextCompat.getColor(getContext(), R.color.colorAccentAlpha));
-        co.strokeWidth(0);
-        lastCircle = googleMap.addCircle(co);
+//        CircleOptions co = new CircleOptions();
+//        co.center(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()));
+//        co.radius(metres);
+//        co.fillColor(ContextCompat.getColor(getContext(), R.color.colorAccentAlpha));
+//        co.strokeWidth(0);
+//        lastCircle = googleMap.addCircle(co);
     }
 
 }
