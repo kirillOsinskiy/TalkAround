@@ -261,7 +261,7 @@ public class MapFragment extends UpdatableFragment implements
             CustomLocation l = talk.getLocation();
             MarkerOptions marker = new MarkerOptions().position(
                     new LatLng(l.getLatitude(), l.getLongitude())).title(talk.getTitle());
-            //marker.icon(BitmapDescriptorFactory.fromResource())
+            marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.person));
             lastMarkers.add(googleMap.addMarker(marker));
             googleMap.setOnInfoWindowClickListener(this);
 
