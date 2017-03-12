@@ -42,42 +42,53 @@
                 android:textColor="#083661"
                 android:textSize="20sp" />
 
-            <ListView
-                android:id="@+id/answer_list"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:background="#E8EEF2"
-                android:divider="@android:color/transparent"
-                android:dividerHeight="5dp"
-                android:paddingLeft="5dp"
-                android:paddingRight="5dp" />
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="8dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:scaleType="fitXY"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:onClick="attachImage"
+                    app:srcCompat="@drawable/ic_attach"/>
 
                 <EditText
                     android:id="@+id/answer_text"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:inputType="text"
+                    android:hint="@string/message"
                     android:background="@null"
                     android:textColor="#083661" />
 
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="35dp"
-                    android:layout_gravity="bottom"
-                    android:layout_marginRight="5dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#92278F"
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="8dp"
+                    android:scaleType="fitXY"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
                     android:onClick="addNewAnswer"
-                    android:text="@string/sendAnswer"
-                    android:textColor="#FFFFFF" />
+                    app:srcCompat="@drawable/ic_send" />
+
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
