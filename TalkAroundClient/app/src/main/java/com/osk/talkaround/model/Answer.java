@@ -15,7 +15,7 @@ public class Answer implements Serializable, Comparable {
     private long orderNumber;
     private Date answerDate;
     private String message;
-    private File attachment;
+    private String attachment;
 
     public BigInteger getId() {
         return id;
@@ -57,11 +57,11 @@ public class Answer implements Serializable, Comparable {
         this.message = message;
     }
 
-    public File getAttachment() {
+    public String getAttachment() {
         return attachment;
     }
 
-    public void setAttachment(File attachment) {
+    public void setAttachment(String attachment) {
         this.attachment = attachment;
     }
 

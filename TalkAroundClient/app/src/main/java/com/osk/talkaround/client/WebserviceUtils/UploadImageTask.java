@@ -100,12 +100,12 @@ public class UploadImageTask extends AsyncTask<String, String, String> {
 
             dos.writeBytes(twoHyphens + boundary + lineEnd);
             dos.writeBytes("Content-Disposition: form-data; name=\"title\"" + lineEnd);
-            dos.writeBytes(lineEnd);
+            dos.writeBytes(twoHyphens + boundary + lineEnd);//dos.writeBytes(lineEnd);
             dos.writeBytes(filename);
-            dos.writeBytes(lineEnd);
-            dos.writeBytes(twoHyphens + boundary + lineEnd)
+            //dos.writeBytes(lineEnd);
+            dos.writeBytes(twoHyphens + boundary + lineEnd);
             dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\";filename=\"" + iFileName + "\"" + lineEnd);
-            dos.writeBytes(lineEnd);
+            dos.writeBytes(twoHyphens + boundary + lineEnd);//dos.writeBytes(lineEnd);
 
             Log.e(Tag, "Headers are written");
 
