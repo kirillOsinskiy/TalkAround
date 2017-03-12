@@ -1,24 +1,40 @@
 package com.osk.talkaround;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import javax.imageio.ImageIO;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * Created by KOsinsky on 19.03.2016.
  */
 @Path("/talk")
 public class TalkAroundServerEntry {
+    private static final String STORAGE_PATH = "C:\\DEV\\TalkAround\\TalkAround\\storage\\";
     // The @Context annotation allows us to have certain contextual objects
     // injected into this class.
     // UriInfo object allows us to get URI information (no kidding).
@@ -81,6 +97,40 @@ public class TalkAroundServerEntry {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @GET
+    @Path("/getImage/{imageName}")
+    @Produces("image/png")
+    public Response getImage(@PathParam(DataAccessService.IMAGE_QUERY_PARAM) String imageName) {
+        try {
+            File imageFile = new File(STORAGE_PATH + imageName);
+            BufferedImage image = ImageIO.read(imageFile);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", baos);
+            byte[] imageData = baos.toByteArray();
+            return Response.ok(new ByteArrayInputStream(imageData)).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
+    }
+
+    @POST
+    @Path("/saveImage")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response saveImage(InputStream inputStream) {
+        try {
+            File file = new File(STORAGE_PATH+UUID.randomUUID().toString());
+            OutputStream outputStream = new FileOutputStream(file);
+            IOUtils.copy(inputStream, outputStream);
+            outputStream.close();
+            return Response.ok(file.getName()).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
     }
 
     @POST

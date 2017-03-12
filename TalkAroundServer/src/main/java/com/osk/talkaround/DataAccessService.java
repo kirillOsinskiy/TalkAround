@@ -46,6 +46,8 @@ public class DataAccessService {
     public final static String ANSWER_TEXT = "answerText";
     public final static String ANSWER_ATTACHMENT = "answerAttachment";
 
+    public final static String IMAGE_QUERY_PARAM = "imageName";
+
     private static final String SELECT_AVAILABLE_TALKS =
             "SELECT id, creationdate, title, text, longitude, latitude from (" +
                     "SELECT id, creationdate, title, text, longitude, latitude, " +
