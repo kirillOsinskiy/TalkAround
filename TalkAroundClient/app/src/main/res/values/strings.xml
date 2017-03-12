@@ -39,4 +39,8 @@
     <string name="error">Ошибка подключения к серверу</string>
     <string name="messages">Messages</string>
     <string name="message">Message</string>
+    <string name="add_talk">New Talk</string>
+    <string name="send">send</string>
+    <string name="title">Title</string>
+    <string name="messageHint">Message</string>
 </resources>

@@ -6,39 +6,46 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.osk.talkaroundclient.R;
+import com.makeramen.roundedimageview.RoundedImageView;
 import com.osk.talkaround.client.utils.AnswerUtils;
 import com.osk.talkaround.model.Answer;
 import com.osk.talkaround.model.Talk;
 
 import java.util.List;
 
+import static com.osk.talkaround.client.WebserviceUtils.WebServiceTask.SERVICE_URL;
+
 /**
  * Created by GZaripov1 on 12.03.2017.
  */
 
-public class AnswersAdapter extends RecyclerView.Adapter<AnswersAdapter.AnswerViewHolder> {
+public class AnswersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<Answer> answerList;
 
 
 
-    public class AnswerViewHolder extends RecyclerView.ViewHolder {
-        public TextView title, message;
+    private class AnswerViewHolder extends RecyclerView.ViewHolder {
+        TextView title, message;
 
-        public AnswerViewHolder(View view) {
+        AnswerViewHolder(View view) {
             super(view);
             title = (TextView) view.findViewById(R.id.talk_title);
             message = (TextView) view.findViewById(R.id.talk_message);
         }
     }
 
-    public class ImageViewHolder extends RecyclerView.ViewHolder {
-        public TextView title, message;
+    private class ImageViewHolder extends RecyclerView.ViewHolder {
+        TextView title, message;
+        private RoundedImageView iv;
 
-        public ImageViewHolder(View view) {
+        ImageViewHolder(View view) {
             super(view);
             title = (TextView) view.findViewById(R.id.talk_title);
             message = (TextView) view.findViewById(R.id.talk_message);
+            iv = (RoundedImageView) view.findViewById(R.id.iv);
         }
     }
 
@@ -47,11 +54,17 @@ public class AnswersAdapter extends RecyclerView.Adapter<AnswersAdapter.AnswerVi
     }
 
     @Override
-    public AnswerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext().getApplicationContext())
-                .inflate(R.layout.row_answer_layout, parent, false);
-
-        return new AnswerViewHolder(itemView);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View itemView;
+        if (viewType == 0) {
+            itemView = LayoutInflater.from(parent.getContext().getApplicationContext())
+                    .inflate(R.layout.row_answer_layout, parent, false);
+            return new AnswerViewHolder(itemView);
+        } else {
+            itemView = LayoutInflater.from(parent.getContext().getApplicationContext())
+                    .inflate(R.layout.row_answer_image_layout, parent, false);
+            return new ImageViewHolder(itemView);
+        }
     }
 
     @Override
@@ -60,11 +73,26 @@ public class AnswersAdapter extends RecyclerView.Adapter<AnswersAdapter.AnswerVi
     }
 
     @Override
-    public void onBindViewHolder(AnswerViewHolder holder, int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
         Answer answer = answerList.get(position);
+        if (holder.getItemViewType() == 0) {
+            AnswerViewHolder holder1 = (AnswerViewHolder) holder;
+            holder1.title.setText(AnswerUtils.getDateString(answer));
+            holder1.message.setText(answer.getMessage());
+        } else {
+            ImageViewHolder holder1 = (ImageViewHolder) holder;
+            holder1.title.setText(AnswerUtils.getDateString(answer));
+            holder1.message.setText(answer.getMessage());
 
-        holder.title.setText(AnswerUtils.getDateString(answer));
-        holder.message.setText(answer.getMessage());
+            String url = SERVICE_URL + "/getImage/" + answer.getAttachment();
+
+            Glide.with(holder.itemView.getContext()).load(url)
+                    .crossFade()
+                    .thumbnail(0.35f)
+                    //.bitmapTransform(new CircleTransform(this))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(holder1.iv);
+        }
     }
 
     @Override
