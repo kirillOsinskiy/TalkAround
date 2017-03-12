@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.osk.talkaroundclient.R;
@@ -37,16 +40,20 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static com.osk.talkaround.client.activities.MainActivity.TALK_ID_PARAM;
 
 public class DisplayTalkActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSION_EXTERNAL_STORAGE = 22;
-
+    public static final String TAG_ATTACHMENT = "att";
     private RecyclerView recyclerView;
     private String talkId;
     private AnswersAdapter adapter;
     private ImagePicker imagePicker;
     private Toolbar toolbar;
     private ChosenImage image;
+    private AppBarLayout appBar;
+    private TextView tvAttach;
+    private LinearLayout ll_writeBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,10 +70,24 @@ public class DisplayTalkActivity extends AppCompatActivity {
             }
         });
         setupRecyclerView();
-
+        tvAttach = (TextView) findViewById(R.id.txtAttach);
         Intent intent = getIntent();
         talkId = intent.getStringExtra(MainActivity.TALK_ID_PARAM);
+        appBar = (AppBarLayout) findViewById(R.id.app_bar) ;
         getData(talkId);
+        ll_writeBox = (LinearLayout) findViewById(R.id.ll_writeBox);
+        final float toolbarElevation =  4 * getResources().getDisplayMetrics().density + 0.5f;
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    appBar.setElevation(toolbarElevation);
+                    ll_writeBox.setElevation(2*toolbarElevation);
+                }
+            }
+        }, 800);
     }
 
     private void setupRecyclerView() {
@@ -74,7 +95,21 @@ public class DisplayTalkActivity extends AppCompatActivity {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AnswersAdapter(new ArrayList<Answer>());
+        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getApplicationContext(), recyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                if (adapter.getItemViewType(position) == 0) return;
+                Intent intent = new Intent(DisplayTalkActivity.this, ImageViewerActivity.class);
+                Answer itemValue = adapter.getAnswerList().get(position);
+                intent.putExtra(TAG_ATTACHMENT, itemValue.getAttachment());
+                startActivity(intent);
+            }
 
+            @Override
+            public void onLongItemClick(View view, int position) {
+                // do whatever
+            }
+        }));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
     }
@@ -130,10 +165,10 @@ public class DisplayTalkActivity extends AppCompatActivity {
         wst.addParam("talkId", talkId);
         wst.addParam("answerText", answerText);
         if (image != null) {
-
             UploadImageTask uploadImageTask =
                     new UploadImageTask(this, image.getOriginalPath(), wst);
             uploadImageTask.execute();
+            tvAttach.setVisibility(View.GONE);
             image = null;
             return;
         }
@@ -158,6 +193,8 @@ public class DisplayTalkActivity extends AppCompatActivity {
             @Override
             public void onImagesChosen(List<ChosenImage> images) {
                 image = images.get(0);
+                tvAttach.setVisibility(View.VISIBLE);
+                tvAttach.setText("Attached: " + image.getDisplayName() + " (" + image.getHumanReadableSize(true) + ")");
             }
             @Override
             public void onError(String message) {

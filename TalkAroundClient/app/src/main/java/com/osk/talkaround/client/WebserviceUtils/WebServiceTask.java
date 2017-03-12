@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class WebServiceTask extends AsyncTask<String, Integer, Object> {
 
-    public static final String SERVICE_URL = "http://91.225.131.148:8192/TalkAroundServer/rest/talk";
+    public static final String SERVICE_URL = "http://91.225.131.148:8191/TalkAroundServer/rest/talk";
 
     public static final int POST_TASK = 1;
     public static final int GET_TASK = 2;

@@ -20,10 +20,11 @@
         android:allowBackup="true"
         android:icon="@drawable/ico2"
         android:label="@string/talk_around"
-        tools:replace="android:label"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name="com.osk.talkaround.client.activities.MainActivity"
+        android:theme="@style/AppTheme"
+        tools:replace="android:label">
+        <activity
+            android:name="com.osk.talkaround.client.activities.MainActivity"
             android:label=""
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -34,19 +35,19 @@
         </activity>
         <activity
             android:name="com.osk.talkaround.client.activities.CreateNewTalkActivity"
-            android:theme="@style/AppTheme.NoActionBar"
             android:label=""
-            android:windowSoftInputMode="stateHidden"
-            android:parentActivityName="com.osk.talkaround.client.activities.MainActivity">
+            android:parentActivityName="com.osk.talkaround.client.activities.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustPan">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.osk.talkaround.client.activities.MainActivity" />
         </activity>
         <activity
-            android:theme="@style/AppTheme.NoActionBar"
             android:name="com.osk.talkaround.client.activities.DisplayTalkActivity"
-            android:parentActivityName="com.osk.talkaround.client.activities.MainActivity"
             android:label=""
+            android:parentActivityName="com.osk.talkaround.client.activities.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -63,6 +64,10 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
+
+        <activity
+            android:name="com.osk.talkaround.client.activities.ImageViewerActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

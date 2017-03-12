@@ -73,7 +73,7 @@ public class UploadImageTask extends AsyncTask<String, String, String> {
         try {
             FileInputStream fileInputStream = new FileInputStream(path);
 
-            URL connectURL = new URL(SERVICE_URL + "/saveImage");
+            URL connectURL = new URL(SERVICE_URL + "/saveImage?uploadFileName=" + filename);
 
             Log.e(Tag, "Starting Http File Sending to URL");
 
@@ -96,16 +96,10 @@ public class UploadImageTask extends AsyncTask<String, String, String> {
 
             conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
 
+
+
             DataOutputStream dos = new DataOutputStream(conn.getOutputStream());
 
-            dos.writeBytes(twoHyphens + boundary + lineEnd);
-            dos.writeBytes("Content-Disposition: form-data; name=\"title\"" + lineEnd);
-            dos.writeBytes(twoHyphens + boundary + lineEnd);//dos.writeBytes(lineEnd);
-            dos.writeBytes(filename);
-            //dos.writeBytes(lineEnd);
-            dos.writeBytes(twoHyphens + boundary + lineEnd);
-            dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\";filename=\"" + iFileName + "\"" + lineEnd);
-            dos.writeBytes(twoHyphens + boundary + lineEnd);//dos.writeBytes(lineEnd);
 
             Log.e(Tag, "Headers are written");
 
