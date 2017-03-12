@@ -9,15 +9,11 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -105,7 +101,7 @@ public class DataAccessService {
     }
 
     private Connection getConnection() throws SQLException {
-        if(connection==null || connection.isClosed()) {
+        if (connection == null || connection.isClosed()) {
             connection = openNewConnection();
         }
         return connection;
@@ -147,15 +143,6 @@ public class DataAccessService {
 
     public InputStream getAvailableTalks(Double longitude, Double latitude, Float distance)
             throws IOException, SQLException {
-//        CustomLocation location = new CustomLocation(longitude, latitude);
-//        for (Talk talk : talkList) {
-//            Float distanceBetween = CustomLocationUtils.distanceTo(location, talk.getLocation());
-//            System.out.println("Distance between user and talk " + talk.getTitle() + " is " + distanceBetween);
-//            if (distanceBetween <= distance) {
-//                talk.setDistance(distanceBetween);
-//                resultList.add(talk);
-//            }
-//        }
         return getInputStreamFromObject(getTalksForLocation(longitude, latitude, distance));
     }
 
@@ -257,12 +244,6 @@ public class DataAccessService {
         String answerAttachmentData = (String) talkParams.get(ANSWER_ATTACHMENT);
         // add answer to talk
         return addNewAnswerToTalk(talkId, answerText, answerAttachmentData);
-    }
-
-    private String storeFile(byte[] answerAttachmentData) throws IOException {
-        Path file = Paths.get("the-file-name");
-        Files.write(file, answerAttachmentData);
-        return file.toAbsolutePath().toString();
     }
 
     private Talk addNewAnswer(Talk talk, @NotNull String answerText, @Nullable String attachment)
