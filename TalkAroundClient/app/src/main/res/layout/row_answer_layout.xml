@@ -34,7 +34,6 @@
             android:layout_marginBottom="8dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:maxLines="2"
             android:text="@string/talkMessageText"
             android:textColor="#083661"
             android:textSize="16sp" />
