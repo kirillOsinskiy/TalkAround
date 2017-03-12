@@ -23,10 +23,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.SQLException;
-import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -119,14 +119,18 @@ public class TalkAroundServerEntry {
     @POST
     @Path("/saveImage")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.TEXT_PLAIN)
     public Response saveImage(InputStream inputStream) {
         try {
-            File file = new File(STORAGE_PATH+UUID.randomUUID().toString());
-            OutputStream outputStream = new FileOutputStream(file);
-            IOUtils.copy(inputStream, outputStream);
-            outputStream.close();
-            return Response.ok(file.getName()).build();
+            String lineEnd = "\r\n";
+            String twoHyphens = "--";
+            String boundary = "\\*\\*\\*\\*\\*";
+            StringWriter writer = new StringWriter();
+            IOUtils.copy(inputStream, writer);
+            String theString = writer.toString();
+            String[] strs = theString.split(twoHyphens + boundary + lineEnd);
+            String filename = strs[2];
+            FileUtils.writeStringToFile(new File(STORAGE_PATH+filename), strs[4]);
+            return Response.ok(filename).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();

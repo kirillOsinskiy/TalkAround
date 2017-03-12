@@ -44,7 +44,7 @@ public class DataAccessService {
     public final static String TALK_LONGITUDE = "talkLongitude";
     public final static String TALK_DISTANCE = "distance";
     public final static String ANSWER_TEXT = "answerText";
-    public final static String ANSWER_ATTACHMENT = "answerAttachment";
+    public final static String ANSWER_ATTACHMENT = "imageUrl";
 
     public final static String IMAGE_QUERY_PARAM = "imageName";
 
@@ -244,7 +244,7 @@ public class DataAccessService {
         answer.setTalkId(BigInteger.valueOf(talkId));
         answer.setAnswerDate(answerDate);
         answer.setMessage(msg);
-        answer.setAttachment(attachment==null?null:new File(attachment));
+        answer.setAttachment(attachment);
         return answer;
     }
 
@@ -254,14 +254,9 @@ public class DataAccessService {
         // parse request params
         String talkId = (String) talkParams.get(TALK_ID);
         String answerText = (String) talkParams.get(ANSWER_TEXT);
-        byte[] answerAttachmentData = talkParams.get(ANSWER_ATTACHMENT) == null ? null :
-                (byte[]) talkParams.get(ANSWER_ATTACHMENT);
-        String uploadedAttachmentPath = null;
-        if(answerAttachmentData != null) {
-            uploadedAttachmentPath = storeFile(answerAttachmentData);
-        }
+        String answerAttachmentData = (String) talkParams.get(ANSWER_ATTACHMENT);
         // add answer to talk
-        return addNewAnswerToTalk(talkId, answerText, uploadedAttachmentPath == null ? null : uploadedAttachmentPath);
+        return addNewAnswerToTalk(talkId, answerText, answerAttachmentData);
     }
 
     private String storeFile(byte[] answerAttachmentData) throws IOException {
@@ -278,7 +273,7 @@ public class DataAccessService {
         answer.setAnswerDate(Calendar.getInstance().getTime());
         answer.setMessage(answerText);
         answer.setOrderNumber(getLastOrderNumber(talk));
-        answer.setAttachment(attachment==null?null:new File(attachment));
+        answer.setAttachment(attachment);
 
         storeAnswerInDB(answer);
         talk.getAnswerList().add(answer);
