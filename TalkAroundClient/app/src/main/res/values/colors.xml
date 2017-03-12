@@ -7,4 +7,5 @@
     <color name="alpha">#00000000</color>
     <color name="white">#ffffff</color>
     <color name="grey">#aaaaaa</color>
+    <color name="fifty_percent_transparency_grey_400">#80bdbdbd</color>
 </resources>
