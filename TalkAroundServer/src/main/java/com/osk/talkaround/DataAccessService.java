@@ -56,7 +56,7 @@ public class DataAccessService {
     private static final String INSERT_NEW_TALK_SQL =
             "INSERT INTO Talk(creationdate, title, text, longitude, latitude) VALUES(?,?,?,?,?)";
     private static final String INSERT_NEW_ANSWER_FOR_TALK_SQL =
-            "INSERT INTO answer(talkid, ordernumber, answerdate, message) VALUES(?,?,?,?)";
+            "INSERT INTO answer(talkid, ordernumber, answerdate, message, attachment) VALUES(?,?,?,?,?)";
     private static final String SELECT_TALK_BY_ID = "SELECT * FROM talk WHERE id = ?";
     private static final String SELECT_ANSWERS_BY_TALK_ID = "SELECT * FROM answer WHERE talkid = ?";
 
@@ -73,6 +73,7 @@ public class DataAccessService {
     private static final String DB_ANSWER_DATE = "answerdate";
     private static final String DB_ANSWER_MSG = "message";
     private static final String DB_ANSWER_ATTACHMENT = "attachment";
+    public static final String UPLOAD_FILE_NAME = "uploadFileName";
 
     private static volatile List<Talk> talkList = new ArrayList<Talk>();
 
@@ -225,13 +226,12 @@ public class DataAccessService {
         ResultSet result = statement.executeQuery();
         TreeSet<Answer> answers = new TreeSet<>();
         while (result.next()) {
-            Answer answer = createAnswer(result.getLong(DB_ANSWER_ID),
+            answers.add(createAnswer(result.getLong(DB_ANSWER_ID),
                     result.getLong(DB_ANSWER_ORDER_NUM),
                     result.getLong(DB_ANSWER_TALK_ID),
-                    result.getDate(DB_ANSWER_DATE),
+                    result.getTimestamp(DB_ANSWER_DATE),
                     result.getString(DB_ANSWER_MSG),
-                    result.getString(DB_ANSWER_ATTACHMENT));
-            answers.add(answer);
+                    result.getString(DB_ANSWER_ATTACHMENT)));
         }
         return answers;
     }
@@ -286,6 +286,7 @@ public class DataAccessService {
         statement.setLong(2, answer.getOrderNumber());
         statement.setTimestamp(3, new Timestamp(answer.getAnswerDate().getTime()));
         statement.setString(4, answer.getMessage());
+        statement.setString(5, answer.getAttachment());
         System.out.println(statement.toString());
         return statement.execute();
     }
@@ -313,7 +314,7 @@ public class DataAccessService {
 
     private Talk createTalkFromResultSet(ResultSet result) throws SQLException {
         return createTalk(BigInteger.valueOf(result.getInt(DB_TALK_ID)),
-                result.getDate(DB_TALK_CREATION_DATE),
+                result.getTimestamp(DB_TALK_CREATION_DATE),
                 result.getString(DB_TALK_TITLE),
                 result.getString(DB_TALK_TEXT),
                 result.getDouble(DB_TALK_LONGITUDE),
