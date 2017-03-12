@@ -31,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
@@ -72,6 +73,8 @@ public class MapFragment extends UpdatableFragment implements
 
     private Talk[] talks;
     private int metres = MainActivity.DISTANCE_SMALL;
+    private boolean wasCancelled;
+
 
     public MapFragment() {
     }
@@ -144,6 +147,7 @@ public class MapFragment extends UpdatableFragment implements
                 && ActivityCompat
                 .checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
+            wasCancelled = true;
             return;
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -185,6 +189,7 @@ public class MapFragment extends UpdatableFragment implements
                 && ActivityCompat
                 .checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
+            wasCancelled = true;
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -236,6 +241,12 @@ public class MapFragment extends UpdatableFragment implements
     @Override
     public void updateTalks(Talk[] talks) {
         this.talks = talks;
+
+        if (wasCancelled) {
+            mGoogleApiClient.reconnect();
+            wasCancelled = false;
+        }
+
         if (!isMapReady) {
             return;
         }
@@ -250,6 +261,7 @@ public class MapFragment extends UpdatableFragment implements
             CustomLocation l = talk.getLocation();
             MarkerOptions marker = new MarkerOptions().position(
                     new LatLng(l.getLatitude(), l.getLongitude())).title(talk.getTitle());
+            //marker.icon(BitmapDescriptorFactory.fromResource())
             lastMarkers.add(googleMap.addMarker(marker));
             googleMap.setOnInfoWindowClickListener(this);
 

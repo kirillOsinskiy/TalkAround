@@ -1,22 +1,20 @@
 package com.osk.talkaround.client.activities;
 
 import android.content.Intent;
-import android.graphics.Color;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.example.osk.talkaroundclient.R;
-import com.google.android.gms.maps.GoogleMap;
 import com.osk.talkaround.client.WebserviceUtils.ResponseHandler;
 import com.osk.talkaround.client.WebserviceUtils.WebServiceTask;
 import com.osk.talkaround.client.adapters.ViewPagerAdapter;
@@ -27,11 +25,14 @@ import org.json.JSONException;
 
 import java.util.List;
 
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final String TALK_ID_PARAM = "talkIdParam";
     public static final String TALK_MSG_PARAM = "talkMsgParam";
-
+    private static final int REQUEST_LOCATION_PERMISSIONS = 25123;
     public static final int DISTANCE_SMALL = 100;
     public static final int DISTANCE_MEDIUM = 500;
     public static final int DISTANCE_BIG = 1000;
@@ -43,7 +44,10 @@ public class MainActivity extends AppCompatActivity {
     private ImageView smallLocBtn;
     private ImageView mediumLocBtn;
     private ImageView bigLocBtn;
-    /** Called when the activity is first created. */
+
+    /**
+     * Called when the activity is first created.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,21 +59,7 @@ public class MainActivity extends AppCompatActivity {
         ViewPager viewPager = ((ViewPager) findViewById(R.id.viewpager));
         String[] titles = getResources().getStringArray(R.array.tab_titles);
 
-/*
-
-        float[] hsv = new float[3];
-        int color = 0;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            color = getColor(R.color.colorPrimary);
-        }
-        Color.colorToHSV(color, hsv);
-        hsv[2] *= 0.8f; // value component
-        color = Color.HSVToColor(hsv);
-
-*/
-
-
-       // tvTalksCount = (TextView) findViewById(R.id.talksCount);
+        // tvTalksCount = (TextView) findViewById(R.id.talksCount);
         adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         adapter.addFragment(new MessagesFragment(), titles[0]);
@@ -100,12 +90,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_LOCATION_PERMISSIONS: {
+                if (grantResults.length > 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    getData(curDist);
+                }
+            }
 
+        }
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        getData(curDist);
+        //getData(curDist);
     }
 
 
@@ -149,6 +151,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getData(int distance) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    || checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION},
+                        REQUEST_LOCATION_PERMISSIONS);
+                return;
+            }
+        }
         WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, this, "GETting data...", new ResponseHandler() {
             @Override
             public void handleResponse(Object response) throws JSONException {
@@ -176,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 

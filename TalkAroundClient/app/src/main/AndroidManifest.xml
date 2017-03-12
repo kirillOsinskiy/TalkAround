@@ -19,13 +19,13 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/ico2"
-        android:label="@string/talk_around"
+        tools:replace="android:label"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:replace="android:label">
+        android:label="@string/talk_around">
         <activity
             android:name="com.osk.talkaround.client.activities.MainActivity"
-            android:label=""
+            android:label="@string/talk_around"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
